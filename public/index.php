@@ -3,637 +3,468 @@ require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/models/Imovel.php';
 require_once __DIR__ . '/models/Categoria.php';
 
-$imovelModel = new Imovel();
-$categoriaModel = new Categoria();
+$db = new Database();
+$conn = $db->getConnection();
 
-$imoveisDestaque = $imovelModel->getDestaques(6);
-$imoveisRecentes = $imovelModel->getAll(9);
-$categorias = $categoriaModel->getAll();
+$imovelModel = new Imovel($conn);
+$categoriaModel = new Categoria($conn);
+
+$imoveisDestaque = $imovelModel->listarDestaques(6);
+$categorias = $categoriaModel->listar();
 ?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="pt-BR" lang="pt-BR">
+<html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <title>FABIOLEAO - Imobiliária</title>
-  <meta name="keywords" content="Imobiliária, Imóveis, Casas, Apartamentos">
-  <meta name="description" content="Encontre o imóvel dos seus sonhos">
-  <meta name="author" content="FABIOLEAO">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <!-- font -->
-  <link rel="stylesheet" href="fonts/fonts.css">
-  <!-- Icons -->
-  <link rel="stylesheet" href="fonts/font-icons.css">
-  <link rel="stylesheet" href="css/bootstrap.min.css">
-  <link rel="stylesheet" href="css/swiper-bundle.min.css">
-  <link rel="stylesheet" href="css/animate.css">
-  <link rel="stylesheet" type="text/css" href="css/styles.css" />
-  <!-- Favicon and Touch Icons  -->
-  <link rel="shortcut icon" href="images/logo/favicon.png">
-  <link rel="apple-touch-icon-precomposed" href="images/logo/favicon.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FABIOLEAO Imobiliária - Encontre seu Imóvel dos Sonhos</title>
+    <meta name="description" content="Encontre casas, apartamentos e terrenos para comprar ou alugar.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<body class="body">
-  <!-- preload -->
-  <div class="preload preload-container">
-    <div class="preload-logo">
-      <div class="spinner"></div>
-      <span class="icon icon-villa-fill"></span>
+<body>
+    <!-- Preloader -->
+    <div class="preloader" id="preloader">
+        <div class="preloader-inner">
+            <div class="loading-spinner"></div>
+            <span>FL</span>
+        </div>
     </div>
-  </div>
-  <!-- /preload -->
-  <div id="wrapper">
-    <div id="pagee" class="clearfix">
-      <!-- Main Header -->
-      <header id="header" class="main-header header-fixed fixed-header">
-        <!-- Header Lower -->
-        <div class="header-lower">
-          <div class="row">
-            <div class="col-lg-12">
-              <div class="inner-header">
-                <div class="inner-header-left">
-                  <div class="logo-box flex">
-                    <div class="logo">
-                      <a href="index.php">
-                        <img src="images/logo/logo@2x.png" alt="logo" width="166" height="48">
-                      </a>
-                    </div>
-                  </div>
-                  <div class="nav-outer flex align-center">
-                    <!-- Main Menu -->
-                    <nav class="main-menu show navbar-expand-md">
-                      <div class="navbar-collapse collapse clearfix" id="navbarSupportedContent">
-                        <ul class="navigation clearfix">
-                          <li class="dropdown2 home current">
-                            <a href="index.php">Início</a>
-                          </li>
-                          <li class="dropdown2">
-                            <a href="#">Imóveis</a>
-                            <ul>
-                              <li><a href="busca.php?tipo_negocio=venda">Comprar</a></li>
-                              <li><a href="busca.php?tipo_negocio=aluguel">Alugar</a></li>
-                            </ul>
-                          </li>
-                          <li class="dropdown2">
-                            <a href="#">Categorias</a>
-                            <ul>
-                              <?php foreach($categorias as $cat): ?>
-                              <li><a href="busca.php?categoria=<?= $cat['slug'] ?>"><?= htmlspecialchars($cat['nome']) ?></a></li>
-                              <?php endforeach; ?>
-                            </ul>
-                          </li>
-                          <li><a href="contato.php">Contato</a></li>
-                        </ul>
-                      </div>
-                    </nav>
-                    <!-- Main Menu End-->
-                  </div>
-                </div>
-                <div class="inner-header-right header-account">
-                  <a href="admin/login.php" class="tf-btn btn-line btn-login">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M13.1251 5C13.1251 5.8288 12.7959 6.62366 12.2099 7.20971C11.6238 7.79576 10.8289 8.125 10.0001 8.125C9.17134 8.125 8.37649 7.79576 7.79043 7.20971C7.20438 6.62366 6.87514 5.8288 6.87514 5C6.87514 4.1712 7.20438 3.37634 7.79043 2.79029C8.37649 2.20424 9.17134 1.875 10.0001 1.875C10.8289 1.875 11.6238 2.20424 12.2099 2.79029C12.7959 3.37634 13.1251 4.1712 13.1251 5ZM3.75098 16.765C3.77776 15.1253 4.44792 13.5618 5.61696 12.4117C6.78599 11.2616 8.36022 10.6171 10.0001 10.6171C11.6401 10.6171 13.2143 11.2616 14.3833 12.4117C15.5524 13.5618 16.2225 15.1253 16.2493 16.765C14.2888 17.664 12.1569 18.1279 10.0001 18.125C7.77014 18.125 5.65348 17.6383 3.75098 16.765Z" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg> Admin
-                  </a>
-                  <div class="flat-bt-top">
-                    <a class="tf-btn primary" href="https://wa.me/5500000000000" target="_blank">
-                      <svg width="21" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" fill="white"/>
-                      </svg> WhatsApp
-                    </a>
-                  </div>
-                </div>
-                <div class="mobile-nav-toggler mobile-button">
-                  <span></span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- End Header Lower -->
-        <!-- Mobile Menu  -->
-        <div class="close-btn">
-          <span class="icon flaticon-cancel-1"></span>
-        </div>
-        <div class="mobile-menu">
-          <div class="menu-backdrop"></div>
-          <nav class="menu-box">
-            <div class="nav-logo">
-              <a href="index.php">
-                <img src="images/logo/logo@2x.png" alt="nav-logo" width="174" height="44">
-              </a>
-            </div>
-            <div class="bottom-canvas">
-              <div class="login-box flex align-center">
-                <a href="admin/login.php">Admin</a>
-              </div>
-              <div class="menu-outer"></div>
-              <div class="button-mobi-sell">
-                <a class="tf-btn primary" href="https://wa.me/5500000000000" target="_blank">WhatsApp</a>
-              </div>
-              <div class="mobi-icon-box">
-                <div class="box d-flex align-items-center">
-                  <span class="icon icon-phone2"></span>
-                  <div>(00) 0000-0000</div>
-                </div>
-                <div class="box d-flex align-items-center">
-                  <span class="icon icon-mail"></span>
-                  <div>contato@fabioleao.com.br</div>
-                </div>
-              </div>
-            </div>
-          </nav>
-        </div>
-        <!-- End Mobile Menu -->
-      </header>
-      <!-- End Main Header -->
 
-      <!-- Slider -->
-      <section class="flat-slider slider-viewport flat-slider-video home-1">
-        <div class="wrap-video">
-          <video src="images/slider/slider-video.mp4" autoplay muted playsinline loop></video>
-          <div class="wrap-content-slider">
-            <div class="container relative">
-              <div class="slider-content">
-                <div class="heading text-center">
-                  <h1 class="title-large text-white animationtext slide"> Encontre Seu <span class="tf-text s1 cd-words-wrapper">
-                      <span class="item-text is-visible">Imóvel Ideal</span>
-                      <span class="item-text is-hidden">Lar Perfeito</span>
-                    </span>
-                  </h1>
-                  <p class="subtitle text-white body-2 wow fadeInUp" data-wow-delay=".2s">Somos uma imobiliária que vai ajudá-lo a encontrar a melhor residência dos seus sonhos. Vamos conversar sobre a casa dos seus sonhos?</p>
-                </div>
-                <div class="flat-tab flat-tab-form">
-                  <ul class="nav-tab-form style-1 justify-content-center" role="tablist">
-                    <li class="nav-tab-item" role="presentation">
-                      <a href="#forRent" class="nav-link-item active" data-bs-toggle="tab">Para Alugar</a>
-                    </li>
-                    <li class="nav-tab-item" role="presentation">
-                      <a href="#forSale" class="nav-link-item" data-bs-toggle="tab">Para Comprar</a>
-                    </li>
-                  </ul>
-                  <div class="tab-content">
-                    <div class="tab-pane fade active show" role="tabpanel" id="forRent">
-                      <div class="form-sl">
-                        <form method="get" action="busca.php">
-                          <input type="hidden" name="tipo_negocio" value="aluguel">
-                          <div class="wd-find-select">
-                            <div class="inner-group">
-                              <div class="form-group-1 search-form form-style">
-                                <label>Tipo</label>
-                                <div class="group-select">
-                                  <select name="categoria" class="nice-select" tabindex="0">
-                                    <option value="">Todos</option>
-                                    <?php foreach($categorias as $cat): ?>
-                                    <option value="<?= $cat['slug'] ?>"><?= htmlspecialchars($cat['nome']) ?></option>
-                                    <?php endforeach; ?>
-                                  </select>
-                                </div>
-                              </div>
-                              <div class="form-group-2 form-style">
-                                <label>Localização</label>
-                                <div class="group-ip">
-                                  <input type="text" class="form-control" placeholder="Buscar localização" name="localizacao">
-                                  <a href="#" class="icon icon-location"></a>
-                                </div>
-                              </div>
-                              <div class="form-group-3 form-style">
-                                <label>Palavra-chave</label>
-                                <input type="text" class="form-control" placeholder="Buscar palavra-chave" name="keyword">
-                              </div>
-                            </div>
-                            <div class="box-btn-advanced">
-                              <div class="form-group-4 box-filter">
-                                <a class="tf-btn btn-line filter-advanced pull-right">
-                                  <span class="text-1">Busca avançada</span>
-                                  <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M5.5 12.375V3.4375M5.5 12.375C5.86467 12.375 6.21441 12.5199 6.47227 12.7777C6.73013 13.0356 6.875 13.3853 6.875 13.75C6.875 14.1147 6.73013 14.4644 6.47227 14.7223C6.21441 14.9801 5.86467 15.125 5.5 15.125M5.5 12.375C5.13533 12.375 4.78559 12.5199 4.52773 12.7777C4.26987 13.0356 4.125 13.3853 4.125 13.75C4.125 14.1147 4.26987 14.4644 4.52773 14.7223C4.78559 14.9801 5.13533 15.125 5.5 15.125M5.5 15.125V18.5625M16.5 12.375V3.4375M16.5 12.375C16.8647 12.375 17.2144 12.5199 17.4723 12.7777C17.7301 13.0356 17.875 13.3853 17.875 13.75C17.875 14.1147 17.7301 14.4644 17.4723 14.7223C17.2144 14.9801 16.8647 15.125 16.5 15.125M16.5 12.375C16.1353 12.375 15.7856 12.5199 15.5277 12.7777C15.2699 13.0356 15.125 13.3853 15.125 13.75C15.125 14.1147 15.2699 14.4644 15.5277 14.7223C15.7856 14.9801 16.1353 15.125 16.5 15.125M16.5 15.125V18.5625M11 6.875V3.4375M11 6.875C11.3647 6.875 11.7144 7.01987 11.9723 7.27773C12.2301 7.53559 12.375 7.88533 12.375 8.25C12.375 8.61467 12.2301 8.96441 11.9723 9.22227C11.7144 9.48013 11.3647 9.625 11 9.625M11 6.875C10.6353 6.875 10.2856 7.01987 10.0277 7.27773C9.76987 7.53559 9.625 7.88533 9.625 8.25C9.625 8.61467 9.76987 8.96441 10.0277 9.22227C10.2856 9.48013 10.6353 9.625 11 9.625M11 9.625V18.5625" stroke="#161E2D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                                  </svg>
-                                </a>
-                              </div>
-                              <button type="submit" class="tf-btn btn-search primary">Buscar <i class="icon icon-search"></i></button>
-                            </div>
-                          </div>
-                          <div class="wd-search-form">
-                            <div class="grid-2 group-box group-price">
-                              <div class="widget-price">
-                                <div class="box-title-price">
-                                  <span class="title-price fw-6">Preço:</span>
-                                  <div class="caption-price">
-                                    <span id="slider-range-value1" class="fw-6"></span>
-                                    <span>-</span>
-                                    <span id="slider-range-value2" class="fw-6"></span>
-                                  </div>
-                                </div>
-                                <div id="slider-range"></div>
-                                <input type="hidden" name="preco_min" value="">
-                                <input type="hidden" name="preco_max" value="">
-                              </div>
-                              <div class="widget-price">
-                                <div class="box-title-price">
-                                  <span class="title-price fw-6">Área:</span>
-                                  <div class="caption-price">
-                                    <span id="slider-range-value01" class="fw-7"></span>
-                                    <span>-</span>
-                                    <span id="slider-range-value02" class="fw-7"></span>
-                                  </div>
-                                </div>
-                                <div id="slider-range2"></div>
-                                <input type="hidden" name="area_min" value="">
-                                <input type="hidden" name="area_max" value="">
-                              </div>
-                            </div>
-                            <div class="grid-2 group-box">
-                              <div class="group-select grid-2">
-                                <div class="box-select">
-                                  <label class="title-select fw-6">Quartos</label>
-                                  <select name="quartos" class="nice-select">
-                                    <option value="">Todos</option>
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
-                                    <option value="3">3</option>
-                                    <option value="4">4+</option>
-                                  </select>
-                                </div>
-                                <div class="box-select">
-                                  <label class="title-select fw-6">Banheiros</label>
-                                  <select name="banheiros" class="nice-select">
-                                    <option value="">Todos</option>
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
-                                    <option value="3">3</option>
-                                    <option value="4">4+</option>
-                                  </select>
-                                </div>
-                              </div>
-                              <div class="group-select grid-2">
-                                <div class="box-select">
-                                  <label class="title-select fw-6">Suítes</label>
-                                  <select name="suites" class="nice-select">
-                                    <option value="">Todos</option>
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
-                                    <option value="3">3+</option>
-                                  </select>
-                                </div>
-                                <div class="box-select">
-                                  <label class="title-select fw-6">Vagas</label>
-                                  <select name="vagas" class="nice-select">
-                                    <option value="">Todos</option>
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
-                                    <option value="3">3+</option>
-                                  </select>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                    <div class="tab-pane fade" role="tabpanel" id="forSale">
-                      <div class="form-sl">
-                        <form method="get" action="busca.php">
-                          <input type="hidden" name="tipo_negocio" value="venda">
-                          <div class="wd-find-select">
-                            <div class="inner-group">
-                              <div class="form-group-1 search-form form-style">
-                                <label>Tipo</label>
-                                <div class="group-select">
-                                  <select name="categoria" class="nice-select" tabindex="0">
-                                    <option value="">Todos</option>
-                                    <?php foreach($categorias as $cat): ?>
-                                    <option value="<?= $cat['slug'] ?>"><?= htmlspecialchars($cat['nome']) ?></option>
-                                    <?php endforeach; ?>
-                                  </select>
-                                </div>
-                              </div>
-                              <div class="form-group-2 form-style">
-                                <label>Localização</label>
-                                <div class="group-ip">
-                                  <input type="text" class="form-control" placeholder="Buscar localização" name="localizacao">
-                                  <a href="#" class="icon icon-location"></a>
-                                </div>
-                              </div>
-                              <div class="form-group-3 form-style">
-                                <label>Palavra-chave</label>
-                                <input type="text" class="form-control" placeholder="Buscar palavra-chave" name="keyword">
-                              </div>
-                            </div>
-                            <div class="box-btn-advanced">
-                              <button type="submit" class="tf-btn btn-search primary">Buscar <i class="icon icon-search"></i></button>
-                            </div>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      <!-- End Slider -->
-
-      <!-- Recommended -->
-      <section class="flat-section flat-recommended">
+    <!-- Header -->
+    <header class="header" id="header">
         <div class="container">
-          <div class="box-title text-center wow fadeInUp">
-            <div class="text-subtitle text-primary">Imóveis em Destaque</div>
-            <h4 class="mt-4">Descubra Nossos Melhores Imóveis</h4>
-          </div>
-          <div class="flat-tab flat-tab-recommended wow fadeInUp" data-wow-delay=".2s">
-            <ul class="nav-tab-recommended justify-content-center" role="tablist">
-              <li class="nav-tab-item" role="presentation">
-                <a href="#apartment" class="nav-link-item active" data-bs-toggle="tab">Todos</a>
-              </li>
-              <?php foreach($categorias as $cat): ?>
-              <li class="nav-tab-item" role="presentation">
-                <a href="#cat<?= $cat['id'] ?>" class="nav-link-item" data-bs-toggle="tab"><?= htmlspecialchars($cat['nome']) ?></a>
-              </li>
-              <?php endforeach; ?>
-            </ul>
-            <div class="tab-content">
-              <div class="tab-pane active show" id="apartment" role="tabpanel">
-                <div class="row">
-                  <?php if(empty($imoveisRecentes)): ?>
-                  <div class="col-12 text-center">
-                    <p class="text-variant-1">Nenhum imóvel cadastrado no momento.</p>
-                  </div>
-                  <?php else: ?>
-                  <?php foreach($imoveisRecentes as $imovel): ?>
-                  <div class="col-xl-4 col-lg-6 col-md-6">
-                    <div class="homelengo-box">
-                      <div class="archive-top">
-                        <a href="imovel.php?id=<?= $imovel['id'] ?>" class="images-group">
-                          <div class="images-style">
-                            <img class="lazyload" data-src="<?= !empty($imovel['imagem_principal']) ? 'uploads/imoveis/'.$imovel['imagem_principal'] : 'images/home/house-1.jpg' ?>" src="<?= !empty($imovel['imagem_principal']) ? 'uploads/imoveis/'.$imovel['imagem_principal'] : 'images/home/house-1.jpg' ?>" alt="<?= htmlspecialchars($imovel['titulo']) ?>">
-                          </div>
-                          <div class="top">
-                            <ul class="d-flex gap-6">
-                              <?php if(!empty($imovel['destaque']) && $imovel['destaque']): ?>
-                              <li class="flag-tag primary">Destaque</li>
-                              <?php endif; ?>
-                              <li class="flag-tag style-1"><?= $imovel['tipo_negocio'] == 'venda' ? 'Venda' : 'Aluguel' ?></li>
-                            </ul>
-                          </div>
-                          <div class="bottom">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M10 7C10 7.53043 9.78929 8.03914 9.41421 8.41421C9.03914 8.78929 8.53043 9 8 9C7.46957 9 6.96086 8.78929 6.58579 8.41421C6.21071 8.03914 6 7.53043 6 7C6 6.46957 6.21071 5.96086 6.58579 5.58579C6.96086 5.21071 7.46957 5 8 5C8.53043 5 9.03914 5.21071 9.41421 5.58579C9.78929 5.96086 10 6.46957 10 7Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                              <path d="M13 7C13 11.7613 8 14.5 8 14.5C8 14.5 3 11.7613 3 7C3 5.67392 3.52678 4.40215 4.46447 3.46447C5.40215 2.52678 6.67392 2 8 2C9.32608 2 10.5979 2.52678 11.5355 3.46447C12.4732 4.40215 13 5.67392 13 7Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                            </svg> <?= htmlspecialchars($imovel['bairro'] . ', ' . $imovel['cidade']) ?>
-                          </div>
-                        </a>
-                      </div>
-                      <div class="archive-bottom">
-                        <div class="content-top">
-                          <h6 class="text-capitalize">
-                            <a href="imovel.php?id=<?= $imovel['id'] ?>" class="link"><?= htmlspecialchars($imovel['titulo']) ?></a>
-                          </h6>
-                          <ul class="meta-list">
-                            <li class="item">
-                              <i class="icon icon-bed"></i>
-                              <span class="text-variant-1">Quartos:</span>
-                              <span class="fw-6"><?= $imovel['quartos'] ?></span>
-                            </li>
-                            <li class="item">
-                              <i class="icon icon-bath"></i>
-                              <span class="text-variant-1">Banheiros:</span>
-                              <span class="fw-6"><?= $imovel['banheiros'] ?></span>
-                            </li>
-                            <li class="item">
-                              <i class="icon icon-sqft"></i>
-                              <span class="text-variant-1">Área:</span>
-                              <span class="fw-6"><?= $imovel['area_total'] ?>m²</span>
-                            </li>
-                          </ul>
-                        </div>
-                        <div class="content-bottom">
-                          <div class="d-flex gap-8 align-items-center">
-                            <span class="text-variant-1"><?= htmlspecialchars($imovel['categoria_nome'] ?? 'Imóvel') ?></span>
-                          </div>
-                          <h6 class="price">R$ <?= number_format($imovel['preco'], 2, ',', '.') ?><?= $imovel['tipo_negocio'] == 'aluguel' ? '/mês' : '' ?></h6>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <?php endforeach; ?>
-                  <?php endif; ?>
-                </div>
-                <div class="text-center">
-                  <a href="busca.php" class="tf-btn btn-view primary size-1 hover-btn-view">Ver Todos os Imóveis <span class="icon icon-arrow-right2"></span></a>
-                </div>
-              </div>
-              <?php foreach($categorias as $cat): ?>
-              <div class="tab-pane" id="cat<?= $cat['id'] ?>" role="tabpanel">
-                <div class="row">
-                  <?php 
-                  $imoveisCat = $imovelModel->getByCategoria($cat['id'], 6);
-                  if(empty($imoveisCat)): ?>
-                  <div class="col-12 text-center">
-                    <p class="text-variant-1">Nenhum imóvel nesta categoria.</p>
-                  </div>
-                  <?php else: ?>
-                  <?php foreach($imoveisCat as $imovel): ?>
-                  <div class="col-xl-4 col-lg-6 col-md-6">
-                    <div class="homelengo-box">
-                      <div class="archive-top">
-                        <a href="imovel.php?id=<?= $imovel['id'] ?>" class="images-group">
-                          <div class="images-style">
-                            <img class="lazyload" data-src="<?= !empty($imovel['imagem_principal']) ? 'uploads/imoveis/'.$imovel['imagem_principal'] : 'images/home/house-1.jpg' ?>" src="<?= !empty($imovel['imagem_principal']) ? 'uploads/imoveis/'.$imovel['imagem_principal'] : 'images/home/house-1.jpg' ?>" alt="<?= htmlspecialchars($imovel['titulo']) ?>">
-                          </div>
-                          <div class="top">
-                            <ul class="d-flex gap-6">
-                              <?php if(!empty($imovel['destaque']) && $imovel['destaque']): ?>
-                              <li class="flag-tag primary">Destaque</li>
-                              <?php endif; ?>
-                              <li class="flag-tag style-1"><?= $imovel['tipo_negocio'] == 'venda' ? 'Venda' : 'Aluguel' ?></li>
-                            </ul>
-                          </div>
-                          <div class="bottom">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M10 7C10 7.53043 9.78929 8.03914 9.41421 8.41421C9.03914 8.78929 8.53043 9 8 9C7.46957 9 6.96086 8.78929 6.58579 8.41421C6.21071 8.03914 6 7.53043 6 7C6 6.46957 6.21071 5.96086 6.58579 5.58579C6.96086 5.21071 7.46957 5 8 5C8.53043 5 9.03914 5.21071 9.41421 5.58579C9.78929 5.96086 10 6.46957 10 7Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                              <path d="M13 7C13 11.7613 8 14.5 8 14.5C8 14.5 3 11.7613 3 7C3 5.67392 3.52678 4.40215 4.46447 3.46447C5.40215 2.52678 6.67392 2 8 2C9.32608 2 10.5979 2.52678 11.5355 3.46447C12.4732 4.40215 13 5.67392 13 7Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                            </svg> <?= htmlspecialchars($imovel['bairro'] . ', ' . $imovel['cidade']) ?>
-                          </div>
-                        </a>
-                      </div>
-                      <div class="archive-bottom">
-                        <div class="content-top">
-                          <h6 class="text-capitalize">
-                            <a href="imovel.php?id=<?= $imovel['id'] ?>" class="link"><?= htmlspecialchars($imovel['titulo']) ?></a>
-                          </h6>
-                          <ul class="meta-list">
-                            <li class="item">
-                              <i class="icon icon-bed"></i>
-                              <span class="text-variant-1">Quartos:</span>
-                              <span class="fw-6"><?= $imovel['quartos'] ?></span>
-                            </li>
-                            <li class="item">
-                              <i class="icon icon-bath"></i>
-                              <span class="text-variant-1">Banheiros:</span>
-                              <span class="fw-6"><?= $imovel['banheiros'] ?></span>
-                            </li>
-                            <li class="item">
-                              <i class="icon icon-sqft"></i>
-                              <span class="text-variant-1">Área:</span>
-                              <span class="fw-6"><?= $imovel['area_total'] ?>m²</span>
-                            </li>
-                          </ul>
-                        </div>
-                        <div class="content-bottom">
-                          <div class="d-flex gap-8 align-items-center">
-                            <span class="text-variant-1"><?= htmlspecialchars($cat['nome']) ?></span>
-                          </div>
-                          <h6 class="price">R$ <?= number_format($imovel['preco'], 2, ',', '.') ?><?= $imovel['tipo_negocio'] == 'aluguel' ? '/mês' : '' ?></h6>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <?php endforeach; ?>
-                  <?php endif; ?>
-                </div>
-                <div class="text-center">
-                  <a href="busca.php?categoria=<?= $cat['slug'] ?>" class="tf-btn btn-view primary size-1 hover-btn-view">Ver Todos <span class="icon icon-arrow-right2"></span></a>
-                </div>
-              </div>
-              <?php endforeach; ?>
-            </div>
-          </div>
-        </div>
-      </section>
-      <!-- End Recommended -->
-
-      <!-- footer -->
-      <footer class="footer">
-        <div class="top-footer">
-          <div class="container">
-            <div class="content-footer-top">
-              <div class="footer-logo">
-                <a href="index.php">
-                  <img src="images/logo/logo-footer@2x.png" alt="logo" width="166" height="48">
+            <div class="header-inner">
+                <a href="index.php" class="logo">
+                    <div class="logo-icon">FL</div>
+                    <span class="logo-text">FABIO<span>LEAO</span></span>
                 </a>
-              </div>
-              <div class="wd-social">
-                <span>Siga-nos:</span>
-                <ul class="list-social d-flex align-items-center">
-                  <li>
-                    <a href="#" class="box-icon w-40 social">
-                      <svg class="icon" width="9" height="16" viewBox="0 0 9 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M7.60547 9L8.00541 6.10437H5.50481V4.22531C5.50481 3.43313 5.85413 2.66094 6.97406 2.66094H8.11087V0.195625C8.11087 0.195625 7.07925 0 6.09291 0C4.03359 0 2.68753 1.38688 2.68753 3.8975V6.10437H0.398438V9H2.68753V16H5.50481V9H7.60547Z" fill="white" />
-                      </svg>
+                
+                <nav class="nav-menu" id="navMenu">
+                    <a href="index.php" class="nav-link active">Início</a>
+                    <a href="busca.php?finalidade=venda" class="nav-link">Comprar</a>
+                    <a href="busca.php?finalidade=aluguel" class="nav-link">Alugar</a>
+                    <a href="busca.php" class="nav-link">Imóveis</a>
+                    <a href="#contato" class="nav-link">Contato</a>
+                </nav>
+                
+                <div class="header-actions">
+                    <a href="tel:+5511999999999" class="header-phone">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                        <span>(11) 99999-9999</span>
                     </a>
-                  </li>
-                  <li>
-                    <a href="#" class="box-icon w-40 social">
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6.99812 4.66567C5.71277 4.66567 4.66383 5.71463 4.66383 7C4.66383 8.28537 5.71277 9.33433 6.99812 9.33433C8.28346 9.33433 9.3324 8.28537 9.3324 7C9.3324 5.71463 8.28346 4.66567 6.99812 4.66567ZM13.9992 7C13.9992 6.03335 14.008 5.07545 13.9537 4.11055C13.8994 2.98979 13.6437 1.99512 12.8242 1.17556C12.0029 0.35426 11.01 0.100338 9.88927 0.0460516C8.92263 -0.00823506 7.96475 0.000520879 6.99987 0.000520879C6.03323 0.000520879 5.07536 -0.00823506 4.11047 0.0460516C2.98973 0.100338 1.99508 0.356011 1.17554 1.17556C0.354253 1.99687 0.100336 2.98979 0.0460508 4.11055C-0.00823491 5.0772 0.00052087 6.0351 0.00052087 7C0.00052087 7.9649 -0.00823491 8.92455 0.0460508 9.88945C0.100336 11.0102 0.356004 12.0049 1.17554 12.8244C1.99683 13.6457 2.98973 13.8997 4.11047 13.9539C5.07711 14.0082 6.03499 13.9995 6.99987 13.9995C7.9665 13.9995 8.92438 14.0082 9.88927 13.9539C11.01 13.8997 12.0047 13.644 12.8242 12.8244C13.6455 12.0031 13.8994 11.0102 13.9537 9.88945C14.0097 8.92455 13.9992 7.96665 13.9992 7ZM6.99812 10.5917C5.01056 10.5917 3.40651 8.98759 3.40651 7C3.40651 5.01241 5.01056 3.40832 6.99812 3.40832C8.98567 3.40832 10.5897 5.01241 10.5897 7C10.5897 8.98759 8.98567 10.5917 6.99812 10.5917ZM10.7368 4.10004C10.2728 4.10004 9.89802 3.72529 9.89802 3.26122C9.89802 2.79716 10.2728 2.42241 10.7368 2.42241C11.2009 2.42241 11.5756 2.79716 11.5756 3.26122C11.5758 3.37142 11.5542 3.48056 11.5121 3.58239C11.47 3.68422 11.4082 3.77675 11.3303 3.85467C11.2523 3.93258 11.1598 3.99437 11.058 4.03647C10.9562 4.07858 10.847 4.10018 10.7368 4.10004Z" fill="white" />
-                      </svg>
-                    </a>
-                  </li>
-                </ul>
-              </div>
+                    <a href="admin/login.php" class="btn btn-primary">Área Admin</a>
+                </div>
+                
+                <button class="menu-toggle" id="menuToggle" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
             </div>
-          </div>
         </div>
-        <div class="inner-footer">
-          <div class="container">
-            <div class="row">
-              <div class="col-lg-4 col-md-6">
-                <div class="footer-cl-1">
-                  <p class="text-variant-2">Especializada em oferecer imóveis de alta qualidade para quem busca o melhor. Entre em contato!</p>
-                  <ul class="mt-12">
-                    <li class="mt-12 d-flex align-items-center gap-8">
-                      <i class="icon icon-mapPinLine fs-20 text-variant-2"></i>
-                      <p class="text-white">Seu endereço aqui, Cidade - Estado</p>
-                    </li>
-                    <li class="mt-12 d-flex align-items-center gap-8">
-                      <i class="icon icon-phone2 fs-20 text-variant-2"></i>
-                      <a href="tel:0000000000" class="text-white caption-1">(00) 0000-0000</a>
-                    </li>
-                    <li class="mt-12 d-flex align-items-center gap-8">
-                      <i class="icon icon-mail fs-20 text-variant-2"></i>
-                      <p class="text-white">contato@fabioleao.com.br</p>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <div class="col-lg-2 col-md-6">
-                <div class="footer-cl-2 footer-col-block">
-                  <div class="fw-7 text-white footer-heading-mobile">Links</div>
-                  <div class="tf-collapse-content">
-                    <ul class="mt-10 navigation-menu-footer">
-                      <li><a href="index.php" class="caption-1 text-variant-2">Início</a></li>
-                      <li><a href="busca.php?tipo_negocio=venda" class="caption-1 text-variant-2">Comprar</a></li>
-                      <li><a href="busca.php?tipo_negocio=aluguel" class="caption-1 text-variant-2">Alugar</a></li>
-                      <li><a href="contato.php" class="caption-1 text-variant-2">Contato</a></li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              <div class="col-lg-2 col-md-6">
-                <div class="footer-cl-3 footer-col-block">
-                  <div class="fw-7 text-white footer-heading-mobile">Categorias</div>
-                  <div class="tf-collapse-content">
-                    <ul class="mt-10 navigation-menu-footer">
-                      <?php foreach($categorias as $cat): ?>
-                      <li><a href="busca.php?categoria=<?= $cat['slug'] ?>" class="caption-1 text-variant-2"><?= htmlspecialchars($cat['nome']) ?></a></li>
-                      <?php endforeach; ?>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              <div class="col-lg-4 col-md-6">
-                <div class="footer-cl-4 footer-col-block">
-                  <div class="fw-7 text-white footer-heading-mobile">Newsletter</div>
-                  <div class="tf-collapse-content">
-                    <p class="mt-12 text-variant-2">Receba as melhores ofertas de imóveis diretamente no seu e-mail.</p>
-                    <form class="mt-12" id="subscribe-form" action="#" method="post">
-                      <div id="subscribe-content">
-                        <input type="email" name="email-form" id="subscribe-email" placeholder="Seu e-mail" />
-                        <button type="button" id="subscribe-button" class="button-subscribe">
-                          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M5.00044 9.99935L2.72461 2.60352C8.16867 4.18685 13.3024 6.68806 17.9046 9.99935C13.3027 13.3106 8.16921 15.8118 2.72544 17.3952L5.00044 9.99935ZM5.00044 9.99935H11.2504" stroke="#1563DF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                          </svg>
-                        </button>
-                      </div>
-                      <div id="subscribe-msg"></div>
-                    </form>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="bottom-footer">
-          <div class="container">
-            <div class="content-footer-bottom">
-              <div class="copyright">&copy;<?= date('Y') ?> FABIOLEAO Imobiliária. Todos os direitos reservados.</div>
-              <ul class="menu-bottom">
-                <li><a href="#">Termos de Uso</a></li>
-                <li><a href="#">Política de Privacidade</a></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </footer>
-      <!-- end footer -->
-    </div>
-    <!-- /#page -->
-  </div>
-  <!-- go top -->
-  <div class="progress-wrap">
-    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
-      <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98" style="transition: stroke-dashoffset 10ms linear 0s; stroke-dasharray: 307.919, 307.919; stroke-dashoffset: 286.138;"></path>
-    </svg>
-  </div>
+    </header>
 
-  <script src="js/jquery.min.js"></script>
-  <script src="js/bootstrap.min.js"></script>
-  <script src="js/swiper-bundle.min.js"></script>
-  <script src="js/carousel.js"></script>
-  <script src="js/lazysize.min.js"></script>
-  <script src="js/jquery-ui.min.js"></script>
-  <script src="js/wow.min.js"></script>
-  <script src="js/main.js"></script>
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <button class="mobile-menu-close" id="mobileMenuClose">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+        <nav class="mobile-nav">
+            <a href="index.php" class="nav-link active">Início</a>
+            <a href="busca.php?finalidade=venda" class="nav-link">Comprar</a>
+            <a href="busca.php?finalidade=aluguel" class="nav-link">Alugar</a>
+            <a href="busca.php" class="nav-link">Imóveis</a>
+            <a href="#contato" class="nav-link">Contato</a>
+            <a href="admin/login.php" class="btn btn-primary" style="margin-top: 20px;">Área Admin</a>
+        </nav>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-bg">
+            <video autoplay muted loop playsinline poster="assets/images/hero-poster.jpg">
+                <source src="assets/videos/hero-bg.mp4" type="video/mp4">
+            </video>
+            <div class="hero-overlay"></div>
+        </div>
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="hero-badge-dot"></span>
+                    A melhor imobiliária da região
+                </div>
+                <h1 class="hero-title">
+                    Encontre o <span>imóvel perfeito</span> para você
+                </h1>
+                <p class="hero-subtitle">
+                    Descubra milhares de opções de casas, apartamentos e terrenos. 
+                    Sua próxima casa está a apenas um clique de distância.
+                </p>
+                
+                <!-- Search Box -->
+                <div class="search-box">
+                    <div class="search-tabs">
+                        <button class="search-tab active" data-type="venda">Comprar</button>
+                        <button class="search-tab" data-type="aluguel">Alugar</button>
+                    </div>
+                    <form class="search-form" action="busca.php" method="GET" id="searchForm">
+                        <input type="hidden" name="finalidade" id="searchFinalidade" value="venda">
+                        
+                        <div class="form-group">
+                            <label class="form-label">Localização</label>
+                            <div class="input-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                    <circle cx="12" cy="10" r="3"/>
+                                </svg>
+                                <input type="text" name="cidade" class="form-control" placeholder="Cidade ou bairro">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Tipo de Imóvel</label>
+                            <select name="categoria" class="form-control">
+                                <option value="">Todos os tipos</option>
+                                <?php if($categorias && $categorias->rowCount() > 0): ?>
+                                    <?php while($cat = $categorias->fetch(PDO::FETCH_ASSOC)): ?>
+                                        <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['nome']) ?></option>
+                                    <?php endwhile; ?>
+                                <?php endif; ?>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Preço Máximo</label>
+                            <select name="preco_max" class="form-control">
+                                <option value="">Sem limite</option>
+                                <option value="200000">Até R$ 200.000</option>
+                                <option value="400000">Até R$ 400.000</option>
+                                <option value="600000">Até R$ 600.000</option>
+                                <option value="800000">Até R$ 800.000</option>
+                                <option value="1000000">Até R$ 1.000.000</option>
+                                <option value="2000000">Até R$ 2.000.000</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Quartos</label>
+                            <select name="quartos" class="form-control">
+                                <option value="">Qualquer</option>
+                                <option value="1">1+</option>
+                                <option value="2">2+</option>
+                                <option value="3">3+</option>
+                                <option value="4">4+</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-search">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.3-4.3"></path>
+                            </svg>
+                            Buscar
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">500+</div>
+                        <div class="hero-stat-label">Imóveis Disponíveis</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">1.200+</div>
+                        <div class="hero-stat-label">Clientes Satisfeitos</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">15+</div>
+                        <div class="hero-stat-label">Anos de Experiência</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Properties -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Imóveis em Destaque</h2>
+                    <p class="section-subtitle">Confira as melhores oportunidades selecionadas para você</p>
+                </div>
+                <a href="busca.php" class="btn btn-outline">
+                    Ver todos
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
+            
+            <div class="properties-grid">
+                <?php if($imoveisDestaque && $imoveisDestaque->rowCount() > 0): ?>
+                    <?php while($imovel = $imoveisDestaque->fetch(PDO::FETCH_ASSOC)): ?>
+                        <article class="property-card">
+                            <a href="imovel.php?id=<?= $imovel['id'] ?>" class="property-image">
+                                <img src="<?= !empty($imovel['imagem_principal']) ? 'uploads/imoveis/' . $imovel['imagem_principal'] : 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&h=400&fit=crop' ?>" alt="<?= htmlspecialchars($imovel['titulo']) ?>" loading="lazy">
+                                <div class="property-badges">
+                                    <span class="property-badge <?= $imovel['finalidade'] == 'venda' ? 'sale' : 'rent' ?>">
+                                        <?= $imovel['finalidade'] == 'venda' ? 'Venda' : 'Aluguel' ?>
+                                    </span>
+                                    <?php if(!empty($imovel['destaque']) && $imovel['destaque']): ?>
+                                        <span class="property-badge featured">Destaque</span>
+                                    <?php endif; ?>
+                                </div>
+                                <button class="property-favorite" type="button" aria-label="Favoritar">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                    </svg>
+                                </button>
+                            </a>
+                            <div class="property-content">
+                                <span class="property-type"><?= htmlspecialchars($imovel['categoria_nome'] ?? 'Imóvel') ?></span>
+                                <h3 class="property-title">
+                                    <a href="imovel.php?id=<?= $imovel['id'] ?>"><?= htmlspecialchars($imovel['titulo']) ?></a>
+                                </h3>
+                                <div class="property-location">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                        <circle cx="12" cy="10" r="3"/>
+                                    </svg>
+                                    <?= htmlspecialchars($imovel['bairro'] ?? '') ?><?= !empty($imovel['bairro']) && !empty($imovel['cidade']) ? ', ' : '' ?><?= htmlspecialchars($imovel['cidade'] ?? '') ?>
+                                </div>
+                                <div class="property-features">
+                                    <?php if(!empty($imovel['quartos']) && $imovel['quartos'] > 0): ?>
+                                    <div class="property-feature">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M2 4v16M2 8h18a2 2 0 0 1 2 2v10M2 17h20M6 8v9"/>
+                                        </svg>
+                                        <?= $imovel['quartos'] ?> <?= $imovel['quartos'] == 1 ? 'Quarto' : 'Quartos' ?>
+                                    </div>
+                                    <?php endif; ?>
+                                    <?php if(!empty($imovel['banheiros']) && $imovel['banheiros'] > 0): ?>
+                                    <div class="property-feature">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M9 6 6.5 3.5a1.5 1.5 0 0 0-1-.5C4.683 3 4 3.683 4 4.5V17a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/>
+                                            <line x1="10" x2="8" y1="5" y2="7"/>
+                                            <line x1="2" x2="22" y1="12" y2="12"/>
+                                            <line x1="7" x2="7" y1="19" y2="21"/>
+                                            <line x1="17" x2="17" y1="19" y2="21"/>
+                                        </svg>
+                                        <?= $imovel['banheiros'] ?> <?= $imovel['banheiros'] == 1 ? 'Banheiro' : 'Banheiros' ?>
+                                    </div>
+                                    <?php endif; ?>
+                                    <?php if(!empty($imovel['area']) && $imovel['area'] > 0): ?>
+                                    <div class="property-feature">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                                        </svg>
+                                        <?= number_format($imovel['area'], 0, ',', '.') ?> m²
+                                    </div>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="property-footer">
+                                    <div class="property-price">
+                                        R$ <?= number_format($imovel['preco'], 0, ',', '.') ?>
+                                        <?php if($imovel['finalidade'] == 'aluguel'): ?>
+                                            <span>/mês</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <a href="imovel.php?id=<?= $imovel['id'] ?>" class="btn btn-sm btn-outline">Ver mais</a>
+                                </div>
+                            </div>
+                        </article>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <div class="empty-state">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            <polyline points="9,22 9,12 15,12 15,22"/>
+                        </svg>
+                        <h3>Nenhum imóvel em destaque</h3>
+                        <p>Os imóveis em destaque aparecerão aqui.</p>
+                        <a href="busca.php" class="btn btn-primary">Ver todos os imóveis</a>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section bg-gray-50">
+        <div class="container">
+            <div class="section-header text-center">
+                <h2 class="section-title">Por que escolher a FABIOLEAO?</h2>
+                <p class="section-subtitle">Oferecemos o melhor serviço para encontrar seu imóvel ideal</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                    </div>
+                    <h4 class="feature-title">Localizações Premium</h4>
+                    <p class="feature-description">Imóveis nas melhores localizações da cidade, com fácil acesso a comércios e serviços.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                    <h4 class="feature-title">Transações Seguras</h4>
+                    <p class="feature-description">Total segurança jurídica em todas as etapas da compra, venda ou aluguel do seu imóvel.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12,6 12,12 16,14"/>
+                        </svg>
+                    </div>
+                    <h4 class="feature-title">Atendimento 24h</h4>
+                    <p class="feature-description">Equipe disponível para atender você a qualquer momento, inclusive finais de semana.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26 12,2"/>
+                        </svg>
+                    </div>
+                    <h4 class="feature-title">Avaliação Gratuita</h4>
+                    <p class="feature-description">Oferecemos avaliação gratuita do seu imóvel com profissionais experientes do mercado.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="section cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2 class="cta-title">Quer vender ou alugar seu imóvel?</h2>
+                <p class="cta-subtitle">Anuncie conosco e alcance milhares de interessados. Nossa equipe cuida de tudo para você.</p>
+                <div class="cta-buttons">
+                    <a href="tel:+5511999999999" class="btn btn-white btn-lg">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                        Fale com um corretor
+                    </a>
+                    <a href="https://wa.me/5511999999999" target="_blank" class="btn btn-whatsapp btn-lg">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                        </svg>
+                        WhatsApp
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="contato">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="index.php" class="logo">
+                        <div class="logo-icon">FL</div>
+                        <span class="logo-text">FABIO<span>LEAO</span></span>
+                    </a>
+                    <p class="footer-description">
+                        Há mais de 15 anos ajudando famílias a encontrarem o lar dos seus sonhos. 
+                        Conte com nossa experiência e dedicação.
+                    </p>
+                    <div class="footer-social">
+                        <a href="#" class="social-link" aria-label="Facebook">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="social-link" aria-label="Instagram">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="social-link" aria-label="LinkedIn">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="footer-col">
+                    <h5 class="footer-title">Links Rápidos</h5>
+                    <ul class="footer-links">
+                        <li><a href="index.php" class="footer-link">Início</a></li>
+                        <li><a href="busca.php" class="footer-link">Imóveis</a></li>
+                        <li><a href="busca.php?finalidade=venda" class="footer-link">Comprar</a></li>
+                        <li><a href="busca.php?finalidade=aluguel" class="footer-link">Alugar</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h5 class="footer-title">Tipos de Imóveis</h5>
+                    <ul class="footer-links">
+                        <li><a href="busca.php?categoria=1" class="footer-link">Casas</a></li>
+                        <li><a href="busca.php?categoria=2" class="footer-link">Apartamentos</a></li>
+                        <li><a href="busca.php?categoria=3" class="footer-link">Terrenos</a></li>
+                        <li><a href="busca.php?categoria=4" class="footer-link">Comerciais</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h5 class="footer-title">Contato</h5>
+                    <div class="footer-contact">
+                        <div class="footer-contact-item">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                            <span>Av. Principal, 1234<br>Centro - São Paulo/SP</span>
+                        </div>
+                        <div class="footer-contact-item">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                            </svg>
+                            <span>(11) 99999-9999</span>
+                        </div>
+                        <div class="footer-contact-item">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                <polyline points="22,6 12,13 2,6"/>
+                            </svg>
+                            <span>contato@fabioleao.com.br</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p class="footer-copyright">&copy; <?= date('Y') ?> FABIOLEAO Imobiliária. Todos os direitos reservados.</p>
+                <div class="footer-legal">
+                    <a href="#">Política de Privacidade</a>
+                    <a href="#">Termos de Uso</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/main.js"></script>
 </body>
 </html>
