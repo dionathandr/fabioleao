@@ -6,16 +6,16 @@ require_once __DIR__ . '/models/Categoria.php';
 $imovelModel = new Imovel();
 $categoriaModel = new Categoria();
 
-// Obter o slug do imóvel
-$slug = isset($_GET['slug']) ? sanitize($_GET['slug']) : '';
+// Obter ID do imóvel
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-if (empty($slug)) {
+if (empty($id)) {
     header('Location: index.php');
     exit;
 }
 
 // Buscar imóvel
-$imovel = $imovelModel->getBySlug($slug);
+$imovel = $imovelModel->getById($id);
 
 if (!$imovel) {
     header('Location: index.php');
@@ -23,692 +23,542 @@ if (!$imovel) {
 }
 
 // Incrementar visualizações
-$imovelModel->incrementViews($imovel['id']);
+$imovelModel->incrementViews($id);
 
 // Buscar imagens da galeria
-$imagens = $imovelModel->getImages($imovel['id']);
+$imagens = $imovelModel->getImages($id);
 
 // Buscar amenidades
-$amenidades = $imovelModel->getAmenidades($imovel['id']);
+$amenidades = $imovelModel->getAmenidades($id);
 
 // Buscar imóveis similares
-$similares = $imovelModel->getSimilares($imovel['id'], $imovel['categoria_id'], 4);
+$similares = $imovelModel->getSimilares($id, $imovel['categoria_id'], 5);
 
 // Buscar categorias para o menu
 $categorias = $categoriaModel->getAll();
-
-// Buscar últimos imóveis para sidebar
-$ultimosImoveis = $imovelModel->getRecentes(5);
 ?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="pt-BR" lang="pt-BR">
 <head>
-    <meta charset="utf-8">
-    <title><?= htmlspecialchars($imovel['titulo']) ?> - FABIOLEAO Imóveis</title>
-    <meta name="description" content="<?= htmlspecialchars($imovel['descricao_curta'] ?? substr($imovel['descricao'], 0, 160)) ?>">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    
-    <!-- Open Graph -->
-    <meta property="og:title" content="<?= htmlspecialchars($imovel['titulo']) ?>">
-    <meta property="og:description" content="<?= htmlspecialchars($imovel['descricao_curta'] ?? substr($imovel['descricao'], 0, 160)) ?>">
-    <meta property="og:image" content="assets/images/properties/<?= $imovel['imagem_principal'] ?>">
-    <meta property="og:type" content="website">
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    
-    <!-- Swiper CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css">
-    
-    <!-- Fancybox -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css">
-    
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="assets/css/styles.css">
-    <link rel="stylesheet" href="assets/css/property-details.css">
-    
-    <!-- Favicon -->
-    <link rel="shortcut icon" href="assets/images/favicon.png">
+  <meta charset="utf-8">
+  <title><?= htmlspecialchars($imovel['titulo']) ?> - FABIOLEAO Imobiliária</title>
+  <meta name="description" content="<?= htmlspecialchars(substr($imovel['descricao'], 0, 160)) ?>">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <!-- font -->
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <!-- Icons -->
+  <link rel="stylesheet" href="fonts/font-icons.css">
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/swiper-bundle.min.css">
+  <link rel="stylesheet" href="css/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="css/animate.css">
+  <link rel="stylesheet" type="text/css" href="css/styles.css" />
+  <!-- Favicon -->
+  <link rel="shortcut icon" href="images/logo/favicon.png">
 </head>
-<body>
-    <!-- Preloader -->
-    <div class="preload preload-container">
-        <div class="preload-logo">
-            <div class="spinner"></div>
-            <i class="bi bi-house-door-fill"></i>
-        </div>
+<body class="body">
+  <!-- preload -->
+  <div class="preload preload-container">
+    <div class="preload-logo">
+      <div class="spinner"></div>
+      <span class="icon icon-villa-fill"></span>
     </div>
-    
-    <div id="wrapper">
-        <!-- Header -->
-        <header id="header" class="main-header fixed-header">
-            <div class="header-lower">
-                <div class="container">
-                    <div class="inner-header">
-                        <div class="inner-header-left">
-                            <div class="logo-box">
-                                <a href="index.php" class="logo">
-                                    <span class="logo-icon"><i class="bi bi-house-door-fill"></i></span>
-                                    <span class="logo-text">FABIOLEAO</span>
-                                </a>
-                            </div>
-                            <nav class="main-menu">
-                                <ul class="navigation">
-                                    <li><a href="index.php">Início</a></li>
-                                    <li class="dropdown2">
-                                        <a href="#">Imóveis</a>
-                                        <ul>
-                                            <li><a href="busca.php?tipo_negocio=venda">Comprar</a></li>
-                                            <li><a href="busca.php?tipo_negocio=aluguel">Alugar</a></li>
-                                        </ul>
-                                    </li>
-                                    <li class="dropdown2">
-                                        <a href="#">Categorias</a>
-                                        <ul>
-                                            <?php foreach($categorias as $cat): ?>
-                                            <li><a href="busca.php?categoria=<?= $cat['slug'] ?>"><?= htmlspecialchars($cat['nome']) ?></a></li>
-                                            <?php endforeach; ?>
-                                        </ul>
-                                    </li>
-                                    <li><a href="index.php#contato">Contato</a></li>
-                                </ul>
-                            </nav>
-                        </div>
-                        <div class="inner-header-right">
-                            <a href="tel:+5511999999999" class="btn-contact">
-                                <i class="bi bi-telephone"></i>
-                                <span>(11) 99999-9999</span>
-                            </a>
-                            <a href="https://wa.me/5511999999999?text=Olá! Tenho interesse no imóvel: <?= urlencode($imovel['titulo']) ?>" target="_blank" class="tf-btn primary">
-                                <i class="bi bi-whatsapp"></i> WhatsApp
-                            </a>
-                        </div>
-                        <div class="mobile-nav-toggler">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
+  </div>
+  <!-- /preload -->
+  <div id="wrapper">
+    <div id="pagee" class="clearfix">
+      <!-- Main Header -->
+      <header class="main-header fixed-header">
+        <!-- Header Lower -->
+        <div class="header-lower">
+          <div class="row">
+            <div class="col-lg-12">
+              <div class="inner-header">
+                <div class="inner-header-left">
+                  <div class="logo-box flex">
+                    <div class="logo">
+                      <a href="index.php">
+                        <img src="images/logo/logo@2x.png" alt="logo" width="166" height="48">
+                      </a>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Mobile Menu -->
-            <div class="mobile-menu">
-                <div class="menu-backdrop"></div>
-                <div class="close-btn"><i class="bi bi-x-lg"></i></div>
-                <nav class="menu-box">
-                    <div class="nav-logo">
-                        <a href="index.php">
-                            <span class="logo-icon"><i class="bi bi-house-door-fill"></i></span>
-                            <span class="logo-text">FABIOLEAO</span>
-                        </a>
-                    </div>
-                    <ul class="navigation-mobile">
-                        <li><a href="index.php">Início</a></li>
-                        <li><a href="busca.php?tipo_negocio=venda">Comprar</a></li>
-                        <li><a href="busca.php?tipo_negocio=aluguel">Alugar</a></li>
-                        <?php foreach($categorias as $cat): ?>
-                        <li><a href="busca.php?categoria=<?= $cat['slug'] ?>"><?= htmlspecialchars($cat['nome']) ?></a></li>
-                        <?php endforeach; ?>
-                        <li><a href="index.php#contato">Contato</a></li>
-                    </ul>
-                </nav>
-            </div>
-        </header>
-        
-        <!-- Property Header -->
-        <section class="property-header">
-            <div class="container">
-                <div class="breadcrumb-wrapper">
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="index.php">Início</a></li>
-                            <li class="breadcrumb-item"><a href="busca.php">Imóveis</a></li>
-                            <?php if($imovel['categoria_nome']): ?>
-                            <li class="breadcrumb-item"><a href="busca.php?categoria=<?= $imovel['categoria_slug'] ?>"><?= htmlspecialchars($imovel['categoria_nome']) ?></a></li>
-                            <?php endif; ?>
-                            <li class="breadcrumb-item active" aria-current="page"><?= htmlspecialchars($imovel['titulo']) ?></li>
-                        </ol>
+                  </div>
+                  <div class="nav-outer flex align-center">
+                    <nav class="main-menu show navbar-expand-md">
+                      <div class="navbar-collapse collapse clearfix" id="navbarSupportedContent">
+                        <ul class="navigation clearfix">
+                          <li class="dropdown2 home">
+                            <a href="index.php">Início</a>
+                          </li>
+                          <li class="dropdown2">
+                            <a href="#">Imóveis</a>
+                            <ul>
+                              <li><a href="busca.php?tipo_negocio=venda">Comprar</a></li>
+                              <li><a href="busca.php?tipo_negocio=aluguel">Alugar</a></li>
+                            </ul>
+                          </li>
+                          <li class="dropdown2">
+                            <a href="#">Categorias</a>
+                            <ul>
+                              <?php foreach($categorias as $cat): ?>
+                              <li><a href="busca.php?categoria=<?= $cat['slug'] ?>"><?= htmlspecialchars($cat['nome']) ?></a></li>
+                              <?php endforeach; ?>
+                            </ul>
+                          </li>
+                          <li><a href="contato.php">Contato</a></li>
+                        </ul>
+                      </div>
                     </nav>
+                  </div>
                 </div>
-                
-                <div class="property-header-content">
-                    <div class="property-header-left">
-                        <div class="property-badges">
-                            <span class="badge badge-<?= $imovel['tipo_negocio'] ?>">
-                                <?= $imovel['tipo_negocio'] == 'venda' ? 'Venda' : 'Aluguel' ?>
-                            </span>
-                            <span class="badge badge-category"><?= htmlspecialchars($imovel['categoria_nome'] ?? 'Imóvel') ?></span>
-                            <?php if($imovel['destaque']): ?>
-                            <span class="badge badge-featured">Destaque</span>
-                            <?php endif; ?>
-                        </div>
-                        <h1 class="property-title"><?= htmlspecialchars($imovel['titulo']) ?></h1>
-                        <div class="property-location">
-                            <i class="bi bi-geo-alt"></i>
-                            <span>
-                                <?php
-                                $location = [];
-                                if ($imovel['endereco']) $location[] = $imovel['endereco'];
-                                if ($imovel['numero']) $location[] = $imovel['numero'];
-                                if ($imovel['bairro']) $location[] = $imovel['bairro'];
-                                if ($imovel['cidade']) $location[] = $imovel['cidade'];
-                                if ($imovel['estado']) $location[] = $imovel['estado'];
-                                echo htmlspecialchars(implode(', ', $location) ?: 'Localização não informada');
-                                ?>
-                            </span>
-                        </div>
-                    </div>
-                    <div class="property-header-right">
-                        <div class="property-price-box">
-                            <span class="price-label">
-                                <?= $imovel['tipo_negocio'] == 'venda' ? 'Valor de Venda' : 'Valor do Aluguel' ?>
-                            </span>
-                            <div class="property-price">
-                                <?= formatPrice($imovel['preco']) ?>
-                                <?php if($imovel['tipo_negocio'] == 'aluguel'): ?>
-                                <span class="price-period">/mês</span>
-                                <?php endif; ?>
-                            </div>
-                            <?php if($imovel['preco_condominio'] || $imovel['preco_iptu']): ?>
-                            <div class="price-extras">
-                                <?php if($imovel['preco_condominio']): ?>
-                                <span>Condomínio: <?= formatPrice($imovel['preco_condominio']) ?></span>
-                                <?php endif; ?>
-                                <?php if($imovel['preco_iptu']): ?>
-                                <span>IPTU: <?= formatPrice($imovel['preco_iptu']) ?></span>
-                                <?php endif; ?>
-                            </div>
-                            <?php endif; ?>
-                        </div>
-                        <div class="property-actions">
-                            <button class="btn-action" title="Favoritar">
-                                <i class="bi bi-heart"></i>
-                            </button>
-                            <button class="btn-action" title="Compartilhar">
-                                <i class="bi bi-share"></i>
-                            </button>
-                            <button class="btn-action" title="Imprimir" onclick="window.print()">
-                                <i class="bi bi-printer"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-        
-        <!-- Property Gallery -->
-        <section class="property-gallery">
-            <div class="container">
-                <div class="gallery-wrapper">
-                    <div class="main-image">
-                        <a href="assets/images/properties/<?= $imovel['imagem_principal'] ?: 'placeholder.jpg' ?>" data-fancybox="gallery">
-                            <img src="assets/images/properties/<?= $imovel['imagem_principal'] ?: 'placeholder.jpg' ?>" alt="<?= htmlspecialchars($imovel['titulo']) ?>">
-                        </a>
-                        <div class="gallery-nav">
-                            <span class="photo-count">
-                                <i class="bi bi-images"></i>
-                                <?= count($imagens) + 1 ?> fotos
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <?php if(count($imagens) > 0): ?>
-                    <div class="gallery-thumbs">
-                        <?php foreach(array_slice($imagens, 0, 4) as $index => $img): ?>
-                        <a href="assets/images/properties/<?= $img['imagem'] ?>" data-fancybox="gallery" class="gallery-thumb <?= $index === 3 && count($imagens) > 4 ? 'has-more' : '' ?>">
-                            <img src="assets/images/properties/<?= $img['imagem'] ?>" alt="Imagem <?= $index + 2 ?>">
-                            <?php if($index === 3 && count($imagens) > 4): ?>
-                            <div class="more-overlay">+<?= count($imagens) - 4 ?></div>
-                            <?php endif; ?>
-                        </a>
-                        <?php endforeach; ?>
-                        
-                        <?php foreach(array_slice($imagens, 4) as $img): ?>
-                        <a href="assets/images/properties/<?= $img['imagem'] ?>" data-fancybox="gallery" style="display: none;"></a>
-                        <?php endforeach; ?>
-                    </div>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </section>
-        
-        <!-- Property Content -->
-        <section class="property-content-section">
-            <div class="container">
-                <div class="property-content-wrapper">
-                    <!-- Main Content -->
-                    <div class="property-main">
-                        <!-- Quick Features -->
-                        <div class="property-quick-features">
-                            <?php if($imovel['quartos'] > 0): ?>
-                            <div class="quick-feature">
-                                <i class="bi bi-door-open"></i>
-                                <div class="feature-info">
-                                    <span class="feature-value"><?= $imovel['quartos'] ?></span>
-                                    <span class="feature-label">Quartos</span>
-                                </div>
-                            </div>
-                            <?php endif; ?>
-                            
-                            <?php if($imovel['suites'] > 0): ?>
-                            <div class="quick-feature">
-                                <i class="bi bi-shield-check"></i>
-                                <div class="feature-info">
-                                    <span class="feature-value"><?= $imovel['suites'] ?></span>
-                                    <span class="feature-label">Suítes</span>
-                                </div>
-                            </div>
-                            <?php endif; ?>
-                            
-                            <?php if($imovel['banheiros'] > 0): ?>
-                            <div class="quick-feature">
-                                <i class="bi bi-droplet"></i>
-                                <div class="feature-info">
-                                    <span class="feature-value"><?= $imovel['banheiros'] ?></span>
-                                    <span class="feature-label">Banheiros</span>
-                                </div>
-                            </div>
-                            <?php endif; ?>
-                            
-                            <?php if($imovel['vagas_garagem'] > 0): ?>
-                            <div class="quick-feature">
-                                <i class="bi bi-car-front"></i>
-                                <div class="feature-info">
-                                    <span class="feature-value"><?= $imovel['vagas_garagem'] ?></span>
-                                    <span class="feature-label">Vagas</span>
-                                </div>
-                            </div>
-                            <?php endif; ?>
-                            
-                            <?php if($imovel['area_construida'] > 0): ?>
-                            <div class="quick-feature">
-                                <i class="bi bi-arrows-angle-expand"></i>
-                                <div class="feature-info">
-                                    <span class="feature-value"><?= number_format($imovel['area_construida'], 0, ',', '.') ?></span>
-                                    <span class="feature-label">m² Construídos</span>
-                                </div>
-                            </div>
-                            <?php endif; ?>
-                            
-                            <?php if($imovel['area_total'] > 0): ?>
-                            <div class="quick-feature">
-                                <i class="bi bi-bounding-box"></i>
-                                <div class="feature-info">
-                                    <span class="feature-value"><?= number_format($imovel['area_total'], 0, ',', '.') ?></span>
-                                    <span class="feature-label">m² Total</span>
-                                </div>
-                            </div>
-                            <?php endif; ?>
-                        </div>
-                        
-                        <!-- Description -->
-                        <div class="property-section">
-                            <h2 class="section-title"><i class="bi bi-file-text"></i> Descrição</h2>
-                            <div class="property-description">
-                                <?= nl2br(htmlspecialchars($imovel['descricao'] ?? 'Sem descrição disponível.')) ?>
-                            </div>
-                        </div>
-                        
-                        <!-- Details -->
-                        <div class="property-section">
-                            <h2 class="section-title"><i class="bi bi-list-ul"></i> Detalhes do Imóvel</h2>
-                            <div class="property-details-grid">
-                                <div class="detail-item">
-                                    <span class="detail-label">Código</span>
-                                    <span class="detail-value">#<?= $imovel['id'] ?></span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Tipo</span>
-                                    <span class="detail-value"><?= htmlspecialchars($imovel['categoria_nome'] ?? '-') ?></span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Status</span>
-                                    <span class="detail-value">
-                                        <?php
-                                        $statusLabels = [
-                                            'disponivel' => 'Disponível',
-                                            'vendido' => 'Vendido',
-                                            'alugado' => 'Alugado',
-                                            'reservado' => 'Reservado'
-                                        ];
-                                        echo $statusLabels[$imovel['status']] ?? 'Disponível';
-                                        ?>
-                                    </span>
-                                </div>
-                                <?php if($imovel['ano_construcao']): ?>
-                                <div class="detail-item">
-                                    <span class="detail-label">Ano de Construção</span>
-                                    <span class="detail-value"><?= $imovel['ano_construcao'] ?></span>
-                                </div>
-                                <?php endif; ?>
-                                <?php if($imovel['quartos'] > 0): ?>
-                                <div class="detail-item">
-                                    <span class="detail-label">Quartos</span>
-                                    <span class="detail-value"><?= $imovel['quartos'] ?></span>
-                                </div>
-                                <?php endif; ?>
-                                <?php if($imovel['suites'] > 0): ?>
-                                <div class="detail-item">
-                                    <span class="detail-label">Suítes</span>
-                                    <span class="detail-value"><?= $imovel['suites'] ?></span>
-                                </div>
-                                <?php endif; ?>
-                                <?php if($imovel['banheiros'] > 0): ?>
-                                <div class="detail-item">
-                                    <span class="detail-label">Banheiros</span>
-                                    <span class="detail-value"><?= $imovel['banheiros'] ?></span>
-                                </div>
-                                <?php endif; ?>
-                                <?php if($imovel['vagas_garagem'] > 0): ?>
-                                <div class="detail-item">
-                                    <span class="detail-label">Vagas de Garagem</span>
-                                    <span class="detail-value"><?= $imovel['vagas_garagem'] ?></span>
-                                </div>
-                                <?php endif; ?>
-                                <?php if($imovel['area_construida'] > 0): ?>
-                                <div class="detail-item">
-                                    <span class="detail-label">Área Construída</span>
-                                    <span class="detail-value"><?= number_format($imovel['area_construida'], 0, ',', '.') ?> m²</span>
-                                </div>
-                                <?php endif; ?>
-                                <?php if($imovel['area_total'] > 0): ?>
-                                <div class="detail-item">
-                                    <span class="detail-label">Área Total</span>
-                                    <span class="detail-value"><?= number_format($imovel['area_total'], 0, ',', '.') ?> m²</span>
-                                </div>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                        
-                        <!-- Amenities -->
-                        <?php if(count($amenidades) > 0): ?>
-                        <div class="property-section">
-                            <h2 class="section-title"><i class="bi bi-check2-square"></i> Características e Comodidades</h2>
-                            <div class="amenities-grid">
-                                <?php foreach($amenidades as $amenidade): ?>
-                                <div class="amenity-item">
-                                    <i class="bi bi-check-circle-fill"></i>
-                                    <span><?= htmlspecialchars($amenidade['nome']) ?></span>
-                                </div>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                        <?php endif; ?>
-                        
-                        <!-- Location -->
-                        <div class="property-section">
-                            <h2 class="section-title"><i class="bi bi-geo-alt"></i> Localização</h2>
-                            <div class="location-info">
-                                <div class="location-address">
-                                    <?php if($imovel['endereco']): ?>
-                                    <p><strong>Endereço:</strong> <?= htmlspecialchars($imovel['endereco']) ?><?= $imovel['numero'] ? ', ' . htmlspecialchars($imovel['numero']) : '' ?></p>
-                                    <?php endif; ?>
-                                    <?php if($imovel['complemento']): ?>
-                                    <p><strong>Complemento:</strong> <?= htmlspecialchars($imovel['complemento']) ?></p>
-                                    <?php endif; ?>
-                                    <?php if($imovel['bairro']): ?>
-                                    <p><strong>Bairro:</strong> <?= htmlspecialchars($imovel['bairro']) ?></p>
-                                    <?php endif; ?>
-                                    <?php if($imovel['cidade']): ?>
-                                    <p><strong>Cidade:</strong> <?= htmlspecialchars($imovel['cidade']) ?><?= $imovel['estado'] ? ' - ' . htmlspecialchars($imovel['estado']) : '' ?></p>
-                                    <?php endif; ?>
-                                    <?php if($imovel['cep']): ?>
-                                    <p><strong>CEP:</strong> <?= htmlspecialchars($imovel['cep']) ?></p>
-                                    <?php endif; ?>
-                                </div>
-                                
-                                <?php if($imovel['latitude'] && $imovel['longitude']): ?>
-                                <div class="location-map">
-                                    <iframe 
-                                        src="https://maps.google.com/maps?q=<?= $imovel['latitude'] ?>,<?= $imovel['longitude'] ?>&z=15&output=embed"
-                                        width="100%" 
-                                        height="300" 
-                                        style="border:0; border-radius: 12px;" 
-                                        allowfullscreen="" 
-                                        loading="lazy">
-                                    </iframe>
-                                </div>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Sidebar -->
-                    <aside class="property-sidebar">
-                        <!-- Contact Form -->
-                        <div class="sidebar-widget contact-widget">
-                            <h3 class="widget-title">Tenho Interesse</h3>
-                            <form action="api/contato.php" method="POST" id="propertyContactForm">
-                                <input type="hidden" name="imovel_id" value="<?= $imovel['id'] ?>">
-                                
-                                <div class="form-group">
-                                    <input type="text" name="nome" class="form-control" placeholder="Seu nome *" required>
-                                </div>
-                                <div class="form-group">
-                                    <input type="email" name="email" class="form-control" placeholder="Seu e-mail *" required>
-                                </div>
-                                <div class="form-group">
-                                    <input type="tel" name="telefone" class="form-control" placeholder="Seu telefone *" required>
-                                </div>
-                                <div class="form-group">
-                                    <textarea name="mensagem" class="form-control" rows="4" placeholder="Sua mensagem">Olá, tenho interesse no imóvel "<?= htmlspecialchars($imovel['titulo']) ?>" (Código #<?= $imovel['id'] ?>). Gostaria de mais informações.</textarea>
-                                </div>
-                                
-                                <button type="submit" class="tf-btn primary w-100">
-                                    <i class="bi bi-send"></i> Enviar Mensagem
-                                </button>
-                            </form>
-                            
-                            <div class="contact-options">
-                                <span>ou entre em contato:</span>
-                                <div class="contact-buttons">
-                                    <a href="https://wa.me/5511999999999?text=Olá! Tenho interesse no imóvel: <?= urlencode($imovel['titulo']) ?> (Código #<?= $imovel['id'] ?>)" target="_blank" class="btn-whatsapp">
-                                        <i class="bi bi-whatsapp"></i> WhatsApp
-                                    </a>
-                                    <a href="tel:+5511999999999" class="btn-phone">
-                                        <i class="bi bi-telephone"></i> Ligar
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Latest Properties -->
-                        <div class="sidebar-widget">
-                            <h3 class="widget-title">Últimos Imóveis</h3>
-                            <div class="latest-properties">
-                                <?php foreach($ultimosImoveis as $ultimo): ?>
-                                <a href="imovel.php?slug=<?= $ultimo['slug'] ?>" class="latest-property-item">
-                                    <div class="latest-image">
-                                        <img src="assets/images/properties/<?= $ultimo['imagem_principal'] ?: 'placeholder.jpg' ?>" alt="<?= htmlspecialchars($ultimo['titulo']) ?>">
-                                    </div>
-                                    <div class="latest-content">
-                                        <h4 class="latest-title"><?= htmlspecialchars($ultimo['titulo']) ?></h4>
-                                        <div class="latest-meta">
-                                            <?php if($ultimo['quartos'] > 0): ?>
-                                            <span><i class="bi bi-door-open"></i> <?= $ultimo['quartos'] ?></span>
-                                            <?php endif; ?>
-                                            <?php if($ultimo['banheiros'] > 0): ?>
-                                            <span><i class="bi bi-droplet"></i> <?= $ultimo['banheiros'] ?></span>
-                                            <?php endif; ?>
-                                            <?php if($ultimo['area_construida'] > 0): ?>
-                                            <span><i class="bi bi-arrows-angle-expand"></i> <?= number_format($ultimo['area_construida'], 0, ',', '.') ?>m²</span>
-                                            <?php endif; ?>
-                                        </div>
-                                        <div class="latest-price"><?= formatPrice($ultimo['preco']) ?></div>
-                                    </div>
-                                </a>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
-                    </aside>
-                </div>
-            </div>
-        </section>
-        
-        <!-- Similar Properties -->
-        <?php if(count($similares) > 0): ?>
-        <section class="flat-section similar-section">
-            <div class="container">
-                <div class="section-header">
-                    <div class="section-title">
-                        <span class="subtitle">Você também pode gostar</span>
-                        <h2>Imóveis Similares</h2>
-                    </div>
-                    <a href="busca.php?categoria=<?= $imovel['categoria_slug'] ?>" class="tf-btn btn-outline">
-                        Ver Mais <i class="bi bi-arrow-right"></i>
+                <div class="inner-header-right header-account">
+                  <a href="admin/login.php" class="tf-btn btn-line btn-login">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M13.1251 5C13.1251 5.8288 12.7959 6.62366 12.2099 7.20971C11.6238 7.79576 10.8289 8.125 10.0001 8.125C9.17134 8.125 8.37649 7.79576 7.79043 7.20971C7.20438 6.62366 6.87514 5.8288 6.87514 5C6.87514 4.1712 7.20438 3.37634 7.79043 2.79029C8.37649 2.20424 9.17134 1.875 10.0001 1.875C10.8289 1.875 11.6238 2.20424 12.2099 2.79029C12.7959 3.37634 13.1251 4.1712 13.1251 5ZM3.75098 16.765C3.77776 15.1253 4.44792 13.5618 5.61696 12.4117C6.78599 11.2616 8.36022 10.6171 10.0001 10.6171C11.6401 10.6171 13.2143 11.2616 14.3833 12.4117C15.5524 13.5618 16.2225 15.1253 16.2493 16.765C14.2888 17.664 12.1569 18.1279 10.0001 18.125C7.77014 18.125 5.65348 17.6383 3.75098 16.765Z" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg> Admin
+                  </a>
+                  <div class="flat-bt-top">
+                    <a class="tf-btn primary" href="https://wa.me/5500000000000?text=Olá! Tenho interesse no imóvel: <?= urlencode($imovel['titulo']) ?>" target="_blank">
+                      <svg width="21" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" fill="white"/>
+                      </svg> WhatsApp
                     </a>
+                  </div>
                 </div>
-                
-                <div class="properties-grid similar-grid">
+                <div class="mobile-nav-toggler mobile-button">
+                  <span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div class="close-btn">
+          <span class="icon flaticon-cancel-1"></span>
+        </div>
+        <div class="mobile-menu">
+          <div class="menu-backdrop"></div>
+          <nav class="menu-box">
+            <div class="nav-logo">
+              <a href="index.php">
+                <img src="images/logo/logo@2x.png" alt="nav-logo" width="174" height="44">
+              </a>
+            </div>
+            <div class="bottom-canvas">
+              <div class="menu-outer"></div>
+              <div class="button-mobi-sell">
+                <a class="tf-btn primary" href="https://wa.me/5500000000000" target="_blank">WhatsApp</a>
+              </div>
+            </div>
+          </nav>
+        </div>
+      </header>
+      <!-- End Main Header -->
+
+      <div class="flat-section-v4">
+        <div class="container">
+          <div class="header-property-detail">
+            <div class="content-top d-flex justify-content-between align-items-center">
+              <h3 class="title link fw-8"><?= htmlspecialchars($imovel['titulo']) ?></h3>
+              <div class="box-price d-flex align-items-end">
+                <h3 class="fw-8">R$ <?= number_format($imovel['preco'], 2, ',', '.') ?></h3>
+                <?php if($imovel['tipo_negocio'] == 'aluguel'): ?>
+                <span class="body-1 text-variant-1">/mês</span>
+                <?php endif; ?>
+              </div>
+            </div>
+            <div class="content-bottom">
+              <div class="box-left">
+                <div class="info-box">
+                  <div class="label">Características</div>
+                  <ul class="meta">
+                    <li class="meta-item">
+                      <i class="icon icon-bed"></i>
+                      <span class="text-variant-1">Quartos:</span>
+                      <span class="fw-6"><?= $imovel['quartos'] ?></span>
+                    </li>
+                    <li class="meta-item">
+                      <i class="icon icon-bath"></i>
+                      <span class="text-variant-1">Banheiros:</span>
+                      <span class="fw-6"><?= $imovel['banheiros'] ?></span>
+                    </li>
+                    <li class="meta-item">
+                      <i class="icon icon-sqft"></i>
+                      <span class="text-variant-1">Área:</span>
+                      <span class="fw-6"><?= $imovel['area_total'] ?>m²</span>
+                    </li>
+                  </ul>
+                </div>
+                <div class="info-box">
+                  <div class="label">Localização</div>
+                  <p class="meta-item">
+                    <span class="icon icon-mapPin"></span>
+                    <span class="text-variant-1"><?= htmlspecialchars($imovel['endereco'] . ', ' . $imovel['bairro'] . ', ' . $imovel['cidade'] . ' - ' . $imovel['estado']) ?></span>
+                  </p>
+                </div>
+              </div>
+              <ul class="icon-box">
+                <li>
+                  <a href="#" class="item">
+                    <svg class="icon" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M15.75 6.1875C15.75 4.32375 14.1758 2.8125 12.234 2.8125C10.7828 2.8125 9.53625 3.657 9 4.86225C8.46375 3.657 7.21725 2.8125 5.76525 2.8125C3.825 2.8125 2.25 4.32375 2.25 6.1875C2.25 11.6025 9 15.1875 9 15.1875C9 15.1875 15.75 11.6025 15.75 6.1875Z" stroke="#A3ABB0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </a>
+                </li>
+                <li>
+                  <a href="https://wa.me/5500000000000?text=<?= urlencode('Olá! Tenho interesse no imóvel: ' . $imovel['titulo']) ?>" target="_blank" class="item">
+                    <svg class="icon" width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M5.625 15.75L2.25 12.375M2.25 12.375L5.625 9M2.25 12.375H12.375M12.375 2.25L15.75 5.625M15.75 5.625L12.375 9M15.75 5.625H5.625" stroke="#A3ABB0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slider de Imagens -->
+      <section class="flat-slider-detail-v1 px-10">
+        <div dir="ltr" class="swiper tf-sw-location" data-preview="3" data-tablet="2" data-mobile-sm="2" data-mobile="1" data-space-lg="10" data-space-md="10" data-space="10" data-pagination="1" data-pagination-sm="2" data-pagination-md="2" data-pagination-lg="3">
+          <div class="swiper-wrapper">
+            <?php if(!empty($imovel['imagem_principal'])): ?>
+            <div class="swiper-slide">
+              <a href="uploads/imoveis/<?= $imovel['imagem_principal'] ?>" data-fancybox="gallery" class="box-img-detail d-block">
+                <img src="uploads/imoveis/<?= $imovel['imagem_principal'] ?>" alt="<?= htmlspecialchars($imovel['titulo']) ?>">
+              </a>
+            </div>
+            <?php endif; ?>
+            <?php foreach($imagens as $img): ?>
+            <div class="swiper-slide">
+              <a href="uploads/imoveis/<?= $img['imagem'] ?>" data-fancybox="gallery" class="box-img-detail d-block">
+                <img src="uploads/imoveis/<?= $img['imagem'] ?>" alt="<?= htmlspecialchars($imovel['titulo']) ?>">
+              </a>
+            </div>
+            <?php endforeach; ?>
+            <?php if(empty($imagens) && empty($imovel['imagem_principal'])): ?>
+            <div class="swiper-slide">
+              <a href="images/home/house-1.jpg" data-fancybox="gallery" class="box-img-detail d-block">
+                <img src="images/home/house-1.jpg" alt="Imagem não disponível">
+              </a>
+            </div>
+            <?php endif; ?>
+          </div>
+          <div class="sw-pagination sw-pagination-location text-center"></div>
+        </div>
+      </section>
+
+      <section class="flat-section-v3 flat-property-detail">
+        <div class="container">
+          <div class="row">
+            <div class="col-xl-8 col-lg-7">
+              <!-- Descrição -->
+              <div class="single-property-element single-property-desc">
+                <h5 class="fw-6 title">Descrição</h5>
+                <p class="text-variant-1"><?= nl2br(htmlspecialchars($imovel['descricao'])) ?></p>
+              </div>
+
+              <!-- Overview -->
+              <div class="single-property-element single-property-overview">
+                <h6 class="title fw-6">Visão Geral</h6>
+                <ul class="info-box">
+                  <li class="item">
+                    <a href="#" class="box-icon w-52">
+                      <i class="icon icon-house-line"></i>
+                    </a>
+                    <div class="content">
+                      <span class="label">Código:</span>
+                      <span><?= $imovel['id'] ?></span>
+                    </div>
+                  </li>
+                  <li class="item">
+                    <a href="#" class="box-icon w-52">
+                      <i class="icon icon-sliders-horizontal"></i>
+                    </a>
+                    <div class="content">
+                      <span class="label">Tipo:</span>
+                      <span><?= htmlspecialchars($imovel['categoria_nome'] ?? 'Não informado') ?></span>
+                    </div>
+                  </li>
+                  <li class="item">
+                    <a href="#" class="box-icon w-52">
+                      <i class="icon icon-garage"></i>
+                    </a>
+                    <div class="content">
+                      <span class="label">Vagas:</span>
+                      <span><?= $imovel['vagas'] ?? 0 ?></span>
+                    </div>
+                  </li>
+                  <li class="item">
+                    <a href="#" class="box-icon w-52">
+                      <i class="icon icon-bed1"></i>
+                    </a>
+                    <div class="content">
+                      <span class="label">Quartos:</span>
+                      <span><?= $imovel['quartos'] ?></span>
+                    </div>
+                  </li>
+                  <li class="item">
+                    <a href="#" class="box-icon w-52">
+                      <i class="icon icon-bathtub"></i>
+                    </a>
+                    <div class="content">
+                      <span class="label">Banheiros:</span>
+                      <span><?= $imovel['banheiros'] ?></span>
+                    </div>
+                  </li>
+                  <li class="item">
+                    <a href="#" class="box-icon w-52">
+                      <i class="icon icon-ruler"></i>
+                    </a>
+                    <div class="content">
+                      <span class="label">Área Total:</span>
+                      <span><?= $imovel['area_total'] ?>m²</span>
+                    </div>
+                  </li>
+                  <?php if(!empty($imovel['suites'])): ?>
+                  <li class="item">
+                    <a href="#" class="box-icon w-52">
+                      <i class="icon icon-bed"></i>
+                    </a>
+                    <div class="content">
+                      <span class="label">Suítes:</span>
+                      <span><?= $imovel['suites'] ?></span>
+                    </div>
+                  </li>
+                  <?php endif; ?>
+                </ul>
+              </div>
+
+              <!-- Amenidades -->
+              <?php if(!empty($amenidades)): ?>
+              <div class="single-property-element single-property-amenities">
+                <h6 class="title fw-6">Amenidades</h6>
+                <div class="wrap-amenities">
+                  <?php foreach($amenidades as $amenidade): ?>
+                  <div class="box-amenities">
+                    <i class="icon icon-check"></i>
+                    <span><?= htmlspecialchars($amenidade['nome']) ?></span>
+                  </div>
+                  <?php endforeach; ?>
+                </div>
+              </div>
+              <?php endif; ?>
+
+              <!-- Localização -->
+              <div class="single-property-element single-property-map">
+                <h6 class="title fw-6">Localização</h6>
+                <p class="text-variant-1">
+                  <strong>Endereço:</strong> <?= htmlspecialchars($imovel['endereco']) ?><br>
+                  <strong>Bairro:</strong> <?= htmlspecialchars($imovel['bairro']) ?><br>
+                  <strong>Cidade:</strong> <?= htmlspecialchars($imovel['cidade']) ?> - <?= htmlspecialchars($imovel['estado']) ?>
+                  <?php if(!empty($imovel['cep'])): ?><br><strong>CEP:</strong> <?= htmlspecialchars($imovel['cep']) ?><?php endif; ?>
+                </p>
+              </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-xl-4 col-lg-5">
+              <div class="widget-sidebar fixed-sidebar">
+                <!-- Contato -->
+                <div class="widget-box single-property-contact">
+                  <h6 class="title fw-6">Entre em Contato</h6>
+                  <form action="contato-enviar.php" method="POST">
+                    <input type="hidden" name="imovel_id" value="<?= $imovel['id'] ?>">
+                    <input type="hidden" name="imovel_titulo" value="<?= htmlspecialchars($imovel['titulo']) ?>">
+                    <div class="ip-group">
+                      <label>Nome Completo:</label>
+                      <input type="text" name="nome" class="form-control" placeholder="Seu nome" required>
+                    </div>
+                    <div class="ip-group">
+                      <label>E-mail:</label>
+                      <input type="email" name="email" class="form-control" placeholder="Seu e-mail" required>
+                    </div>
+                    <div class="ip-group">
+                      <label>Telefone:</label>
+                      <input type="tel" name="telefone" class="form-control" placeholder="Seu telefone" required>
+                    </div>
+                    <div class="ip-group">
+                      <label>Mensagem:</label>
+                      <textarea name="mensagem" class="form-control" rows="3" placeholder="Sua mensagem">Olá! Tenho interesse no imóvel: <?= htmlspecialchars($imovel['titulo']) ?></textarea>
+                    </div>
+                    <button type="submit" class="tf-btn primary w-100">Enviar Mensagem</button>
+                  </form>
+                  <a href="https://wa.me/5500000000000?text=<?= urlencode('Olá! Tenho interesse no imóvel: ' . $imovel['titulo']) ?>" target="_blank" class="tf-btn btn-line w-100 mt-10">
+                    <svg width="21" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px;">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884" fill="currentColor"/>
+                    </svg>
+                    Falar pelo WhatsApp
+                  </a>
+                </div>
+
+                <!-- Imóveis Similares -->
+                <?php if(!empty($similares)): ?>
+                <div class="widget-box single-property-similar">
+                  <h6 class="title fw-6">Imóveis Similares</h6>
+                  <ul class="recent-post-wrap">
                     <?php foreach($similares as $similar): ?>
-                    <div class="property-card">
-                        <div class="property-image">
-                            <a href="imovel.php?slug=<?= $similar['slug'] ?>">
-                                <img src="assets/images/properties/<?= $similar['imagem_principal'] ?: 'placeholder.jpg' ?>" alt="<?= htmlspecialchars($similar['titulo']) ?>">
-                            </a>
-                            <div class="property-badges">
-                                <span class="badge badge-<?= $similar['tipo_negocio'] ?>">
-                                    <?= $similar['tipo_negocio'] == 'venda' ? 'Venda' : 'Aluguel' ?>
-                                </span>
-                            </div>
+                    <li class="latest-property-item">
+                      <a href="imovel.php?id=<?= $similar['id'] ?>" class="images-style">
+                        <img src="<?= !empty($similar['imagem_principal']) ? 'uploads/imoveis/'.$similar['imagem_principal'] : 'images/home/house-1.jpg' ?>" alt="<?= htmlspecialchars($similar['titulo']) ?>">
+                      </a>
+                      <div class="content">
+                        <div class="text-capitalize text-btn">
+                          <a href="imovel.php?id=<?= $similar['id'] ?>" class="link"><?= htmlspecialchars($similar['titulo']) ?></a>
                         </div>
-                        <div class="property-content">
-                            <div class="property-category"><?= htmlspecialchars($similar['categoria_nome'] ?? 'Imóvel') ?></div>
-                            <h3 class="property-title">
-                                <a href="imovel.php?slug=<?= $similar['slug'] ?>"><?= htmlspecialchars($similar['titulo']) ?></a>
-                            </h3>
-                            <div class="property-location">
-                                <i class="bi bi-geo-alt"></i>
-                                <span><?= htmlspecialchars($similar['bairro'] . ', ' . $similar['cidade']) ?></span>
-                            </div>
-                            <div class="property-features">
-                                <?php if($similar['quartos'] > 0): ?>
-                                <div class="feature"><i class="bi bi-door-open"></i> <span><?= $similar['quartos'] ?></span></div>
-                                <?php endif; ?>
-                                <?php if($similar['banheiros'] > 0): ?>
-                                <div class="feature"><i class="bi bi-droplet"></i> <span><?= $similar['banheiros'] ?></span></div>
-                                <?php endif; ?>
-                                <?php if($similar['area_construida'] > 0): ?>
-                                <div class="feature"><i class="bi bi-arrows-angle-expand"></i> <span><?= number_format($similar['area_construida'], 0, ',', '.') ?>m²</span></div>
-                                <?php endif; ?>
-                            </div>
-                            <div class="property-footer">
-                                <div class="property-price">
-                                    <?= formatPrice($similar['preco']) ?>
-                                    <?php if($similar['tipo_negocio'] == 'aluguel'): ?><span class="price-period">/mês</span><?php endif; ?>
-                                </div>
-                                <a href="imovel.php?slug=<?= $similar['slug'] ?>" class="btn-details">Detalhes <i class="bi bi-arrow-right"></i></a>
-                            </div>
-                        </div>
-                    </div>
+                        <ul class="meta-list mt-6">
+                          <li class="item">
+                            <i class="icon icon-bed"></i>
+                            <span class="text-variant-1">Quartos:</span>
+                            <span class="fw-6"><?= $similar['quartos'] ?></span>
+                          </li>
+                          <li class="item">
+                            <i class="icon icon-bath"></i>
+                            <span class="text-variant-1">Banheiros:</span>
+                            <span class="fw-6"><?= $similar['banheiros'] ?></span>
+                          </li>
+                        </ul>
+                        <div class="mt-10 text-btn">R$ <?= number_format($similar['preco'], 2, ',', '.') ?></div>
+                      </div>
+                    </li>
                     <?php endforeach; ?>
+                  </ul>
                 </div>
+                <?php endif; ?>
+              </div>
             </div>
-        </section>
-        <?php endif; ?>
-        
-        <!-- Footer -->
-        <footer class="footer">
-            <div class="footer-top">
-                <div class="container">
-                    <div class="footer-grid">
-                        <div class="footer-col">
-                            <div class="footer-logo">
-                                <span class="logo-icon"><i class="bi bi-house-door-fill"></i></span>
-                                <span class="logo-text">FABIOLEAO</span>
-                            </div>
-                            <p>Sua imobiliária de confiança para encontrar o imóvel dos seus sonhos.</p>
-                            <div class="footer-social">
-                                <a href="#"><i class="bi bi-facebook"></i></a>
-                                <a href="#"><i class="bi bi-instagram"></i></a>
-                                <a href="#"><i class="bi bi-linkedin"></i></a>
-                                <a href="#"><i class="bi bi-youtube"></i></a>
-                            </div>
-                        </div>
-                        
-                        <div class="footer-col">
-                            <h5>Links Rápidos</h5>
-                            <ul>
-                                <li><a href="index.php">Início</a></li>
-                                <li><a href="busca.php?tipo_negocio=venda">Comprar</a></li>
-                                <li><a href="busca.php?tipo_negocio=aluguel">Alugar</a></li>
-                                <li><a href="index.php#contato">Contato</a></li>
-                            </ul>
-                        </div>
-                        
-                        <div class="footer-col">
-                            <h5>Categorias</h5>
-                            <ul>
-                                <?php foreach(array_slice($categorias, 0, 6) as $cat): ?>
-                                <li><a href="busca.php?categoria=<?= $cat['slug'] ?>"><?= htmlspecialchars($cat['nome']) ?></a></li>
-                                <?php endforeach; ?>
-                            </ul>
-                        </div>
-                        
-                        <div class="footer-col">
-                            <h5>Contato</h5>
-                            <ul class="contact-list">
-                                <li><i class="bi bi-geo-alt"></i> Av. Principal, 1000 - Centro, São Paulo - SP</li>
-                                <li><i class="bi bi-telephone"></i> (11) 99999-9999</li>
-                                <li><i class="bi bi-envelope"></i> contato@fabioleao.com.br</li>
-                            </ul>
-                        </div>
-                    </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- footer -->
+      <footer class="footer">
+        <div class="top-footer">
+          <div class="container">
+            <div class="content-footer-top">
+              <div class="footer-logo">
+                <a href="index.php">
+                  <img src="images/logo/logo-footer@2x.png" alt="logo" width="166" height="48">
+                </a>
+              </div>
+              <div class="wd-social">
+                <span>Siga-nos:</span>
+                <ul class="list-social d-flex align-items-center">
+                  <li>
+                    <a href="#" class="box-icon w-40 social">
+                      <svg class="icon" width="9" height="16" viewBox="0 0 9 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7.60547 9L8.00541 6.10437H5.50481V4.22531C5.50481 3.43313 5.85413 2.66094 6.97406 2.66094H8.11087V0.195625C8.11087 0.195625 7.07925 0 6.09291 0C4.03359 0 2.68753 1.38688 2.68753 3.8975V6.10437H0.398438V9H2.68753V16H5.50481V9H7.60547Z" fill="white" />
+                      </svg>
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" class="box-icon w-40 social">
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6.99812 4.66567C5.71277 4.66567 4.66383 5.71463 4.66383 7C4.66383 8.28537 5.71277 9.33433 6.99812 9.33433C8.28346 9.33433 9.3324 8.28537 9.3324 7C9.3324 5.71463 8.28346 4.66567 6.99812 4.66567ZM13.9992 7C13.9992 6.03335 14.008 5.07545 13.9537 4.11055C13.8994 2.98979 13.6437 1.99512 12.8242 1.17556C12.0029 0.35426 11.01 0.100338 9.88927 0.0460516C8.92263 -0.00823506 7.96475 0.000520879 6.99987 0.000520879C6.03323 0.000520879 5.07536 -0.00823506 4.11047 0.0460516C2.98973 0.100338 1.99508 0.356011 1.17554 1.17556C0.354253 1.99687 0.100336 2.98979 0.0460508 4.11055C-0.00823491 5.0772 0.00052087 6.0351 0.00052087 7C0.00052087 7.9649 -0.00823491 8.92455 0.0460508 9.88945C0.100336 11.0102 0.356004 12.0049 1.17554 12.8244C1.99683 13.6457 2.98973 13.8997 4.11047 13.9539C5.07711 14.0082 6.03499 13.9995 6.99987 13.9995C7.9665 13.9995 8.92438 14.0082 9.88927 13.9539C11.01 13.8997 12.0047 13.644 12.8242 12.8244C13.6455 12.0031 13.8994 11.0102 13.9537 9.88945C14.0097 8.92455 13.9992 7.96665 13.9992 7ZM6.99812 10.5917C5.01056 10.5917 3.40651 8.98759 3.40651 7C3.40651 5.01241 5.01056 3.40832 6.99812 3.40832C8.98567 3.40832 10.5897 5.01241 10.5897 7C10.5897 8.98759 8.98567 10.5917 6.99812 10.5917ZM10.7368 4.10004C10.2728 4.10004 9.89802 3.72529 9.89802 3.26122C9.89802 2.79716 10.2728 2.42241 10.7368 2.42241C11.2009 2.42241 11.5756 2.79716 11.5756 3.26122C11.5758 3.37142 11.5542 3.48056 11.5121 3.58239C11.47 3.68422 11.4082 3.77675 11.3303 3.85467C11.2523 3.93258 11.1598 3.99437 11.058 4.03647C10.9562 4.07858 10.847 4.10018 10.7368 4.10004Z" fill="white" />
+                      </svg>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="inner-footer">
+          <div class="container">
+            <div class="row">
+              <div class="col-lg-4 col-md-6">
+                <div class="footer-cl-1">
+                  <p class="text-variant-2">Especializada em oferecer imóveis de alta qualidade para quem busca o melhor. Entre em contato!</p>
+                  <ul class="mt-12">
+                    <li class="mt-12 d-flex align-items-center gap-8">
+                      <i class="icon icon-mapPinLine fs-20 text-variant-2"></i>
+                      <p class="text-white">Seu endereço aqui, Cidade - Estado</p>
+                    </li>
+                    <li class="mt-12 d-flex align-items-center gap-8">
+                      <i class="icon icon-phone2 fs-20 text-variant-2"></i>
+                      <a href="tel:0000000000" class="text-white caption-1">(00) 0000-0000</a>
+                    </li>
+                    <li class="mt-12 d-flex align-items-center gap-8">
+                      <i class="icon icon-mail fs-20 text-variant-2"></i>
+                      <p class="text-white">contato@fabioleao.com.br</p>
+                    </li>
+                  </ul>
                 </div>
-            </div>
-            
-            <div class="footer-bottom">
-                <div class="container">
-                    <div class="footer-bottom-content">
-                        <p>&copy; <?= date('Y') ?> FABIOLEAO Imóveis. Todos os direitos reservados.</p>
-                        <div class="footer-links">
-                            <a href="#">Política de Privacidade</a>
-                            <a href="#">Termos de Uso</a>
-                        </div>
-                    </div>
+              </div>
+              <div class="col-lg-2 col-md-6">
+                <div class="footer-cl-2 footer-col-block">
+                  <div class="fw-7 text-white footer-heading-mobile">Links</div>
+                  <div class="tf-collapse-content">
+                    <ul class="mt-10 navigation-menu-footer">
+                      <li><a href="index.php" class="caption-1 text-variant-2">Início</a></li>
+                      <li><a href="busca.php?tipo_negocio=venda" class="caption-1 text-variant-2">Comprar</a></li>
+                      <li><a href="busca.php?tipo_negocio=aluguel" class="caption-1 text-variant-2">Alugar</a></li>
+                      <li><a href="contato.php" class="caption-1 text-variant-2">Contato</a></li>
+                    </ul>
+                  </div>
                 </div>
+              </div>
+              <div class="col-lg-2 col-md-6">
+                <div class="footer-cl-3 footer-col-block">
+                  <div class="fw-7 text-white footer-heading-mobile">Categorias</div>
+                  <div class="tf-collapse-content">
+                    <ul class="mt-10 navigation-menu-footer">
+                      <?php foreach($categorias as $cat): ?>
+                      <li><a href="busca.php?categoria=<?= $cat['slug'] ?>" class="caption-1 text-variant-2"><?= htmlspecialchars($cat['nome']) ?></a></li>
+                      <?php endforeach; ?>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="col-lg-4 col-md-6">
+                <div class="footer-cl-4 footer-col-block">
+                  <div class="fw-7 text-white footer-heading-mobile">Newsletter</div>
+                  <div class="tf-collapse-content">
+                    <p class="mt-12 text-variant-2">Receba as melhores ofertas de imóveis diretamente no seu e-mail.</p>
+                    <form class="mt-12" id="subscribe-form" action="#" method="post">
+                      <div id="subscribe-content">
+                        <input type="email" name="email-form" id="subscribe-email" placeholder="Seu e-mail" />
+                        <button type="button" id="subscribe-button" class="button-subscribe">
+                          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M5.00044 9.99935L2.72461 2.60352C8.16867 4.18685 13.3024 6.68806 17.9046 9.99935C13.3027 13.3106 8.16921 15.8118 2.72544 17.3952L5.00044 9.99935ZM5.00044 9.99935H11.2504" stroke="#1563DF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                          </svg>
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
             </div>
-        </footer>
-        
-        <!-- WhatsApp Float Button -->
-        <a href="https://wa.me/5511999999999?text=Olá! Tenho interesse no imóvel: <?= urlencode($imovel['titulo']) ?>" target="_blank" class="whatsapp-float">
-            <i class="bi bi-whatsapp"></i>
-        </a>
-        
-        <!-- Back to Top -->
-        <button class="back-to-top" id="backToTop">
-            <i class="bi bi-arrow-up"></i>
-        </button>
+          </div>
+        </div>
+        <div class="bottom-footer">
+          <div class="container">
+            <div class="content-footer-bottom">
+              <div class="copyright">&copy;<?= date('Y') ?> FABIOLEAO Imobiliária. Todos os direitos reservados.</div>
+              <ul class="menu-bottom">
+                <li><a href="#">Termos de Uso</a></li>
+                <li><a href="#">Política de Privacidade</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </footer>
+      <!-- end footer -->
     </div>
-    
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
-    <script src="assets/js/main.js"></script>
-    <script>
-        // Initialize Fancybox
-        Fancybox.bind('[data-fancybox="gallery"]', {
-            Thumbs: {
-                type: "classic"
-            },
-            Toolbar: {
-                display: {
-                    left: ["infobar"],
-                    middle: [],
-                    right: ["slideshow", "fullscreen", "download", "close"]
-                }
-            }
-        });
-    </script>
+  </div>
+  <!-- go top -->
+  <div class="progress-wrap">
+    <svg class="progress-circle svg-content" width="100%" height="100%" viewBox="-1 -1 102 102">
+      <path d="M50,1 a49,49 0 0,1 0,98 a49,49 0 0,1 0,-98"></path>
+    </svg>
+  </div>
+
+  <script src="js/jquery.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/swiper-bundle.min.js"></script>
+  <script src="js/carousel.js"></script>
+  <script src="js/lazysize.min.js"></script>
+  <script src="js/jquery.fancybox.min.js"></script>
+  <script src="js/wow.min.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>

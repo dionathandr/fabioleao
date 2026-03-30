@@ -1,9 +1,9 @@
 <?php
 // Configuração do Banco de Dados
-define('DB_HOST', '127.0.0.1:3306');
-define('DB_NAME', 'u856175843_imobiliaria');
-define('DB_USER', 'u856175843_imobiliaria');
-define('DB_PASS', '$b3Ma>sneinR');
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'imobiliaria');
+define('DB_USER', 'root');
+define('DB_PASS', '');
 define('DB_CHARSET', 'utf8mb4');
 
 // Conexão com o banco de dados usando PDO
