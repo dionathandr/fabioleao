@@ -5,10 +5,10 @@
  */
 
 // Configurações do Banco de Dados
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'fabio_leao_imobiliaria');
-define('DB_USER', 'seu_usuario'); // Altere para seu usuário
-define('DB_PASS', 'sua_senha');   // Altere para sua senha
+define('DB_HOST', '127.0.0.1:3306');
+define('DB_NAME', 'u856175843_imobiliaria');
+define('DB_USER', 'u856175843_imobiliaria'); // Altere para seu usuário
+define('DB_PASS', '$b3Ma>sneinR');   // Altere para sua senha
 define('DB_CHARSET', 'utf8mb4');
 
 // Classe de Conexão com o Banco
