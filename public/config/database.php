@@ -23,7 +23,7 @@ function getConnection() {
     }
 }
 
-// URL base do site
+// URL base do sit
 define('BASE_URL', '/');
 
 // Função para formatar preço em Real brasileiro
