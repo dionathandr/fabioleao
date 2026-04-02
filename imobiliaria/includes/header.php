@@ -19,6 +19,9 @@
     <!-- CSS -->
     <link rel="stylesheet" href="<?php echo ASSETS_URL; ?>css/style.css">
     
+    <!-- Base URL for JavaScript -->
+    <script>window.BASE_URL = '<?php echo BASE_URL; ?>';</script>
+    
     <!-- Open Graph -->
     <meta property="og:title" content="<?php echo getSiteConfig('site_nome'); ?>">
     <meta property="og:description" content="<?php echo getSiteConfig('site_descricao'); ?>">

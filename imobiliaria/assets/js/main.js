@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', function() {
             cidadeSelect.innerHTML = '<option value="">Selecione a Cidade</option>';
 
             if (paisId) {
-                fetch(`api/estados.php?pais_id=${paisId}`)
+                fetch(`${window.BASE_URL || ''}api/estados.php?pais_id=${paisId}`)
                     .then(response => response.json())
                     .then(data => {
                         data.forEach(estado => {
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
             cidadeSelect.innerHTML = '<option value="">Selecione a Cidade</option>';
 
             if (estadoId) {
-                fetch(`api/cidades.php?estado_id=${estadoId}`)
+                fetch(`${window.BASE_URL || ''}api/cidades.php?estado_id=${estadoId}`)
                     .then(response => response.json())
                     .then(data => {
                         data.forEach(cidade => {
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const btn = e.target.closest('.property-favorite');
             const imovelId = btn.dataset.id;
 
-            fetch('api/favorito.php', {
+            fetch(`${window.BASE_URL || ''}api/favorito.php`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.textContent = 'Enviando...';
             submitBtn.disabled = true;
 
-            fetch('api/contato.php', {
+            fetch(`${window.BASE_URL || ''}api/contato.php`, {
                 method: 'POST',
                 body: formData
             })
