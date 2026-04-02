@@ -17,7 +17,7 @@ ini_set('display_errors', 1);
 date_default_timezone_set('America/Sao_Paulo');
 
 // URLs Base
-define('BASE_URL', 'https://fabioleao.com.br/imobiliaria/'); // Altere para sua URL
+define('BASE_URL', 'https://fabioleao.com.br/imobiliaria/'); // Altera sua URL
 define('ADMIN_URL', BASE_URL . 'admin/');
 define('ASSETS_URL', BASE_URL . 'assets/');
 define('UPLOADS_URL', BASE_URL . 'uploads/');
